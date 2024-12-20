@@ -1,0 +1,685 @@
+/* Dark Mode for Entire App */
+body.dark-mode {
+    background: #1C2C3E !important; /* Solid dark background */
+    color: #E5E6E8 !important; /* Light text for readability */
+    position: relative; /* Position for the pattern overlay */
+    transition: background 0.3s ease, color 0.3s ease; /* Smooth transition */
+}
+
+/* Pattern Overlay */
+body.dark-mode::before {
+    content: '';
+    position: fixed; /* Fixed position for the pattern across the viewport */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: url('../public/img.png') repeat, #1C2C3E; /* Pattern with fallback to solid background */
+    opacity: 0.1; /* Light opacity for subtle effect */
+    z-index: -1; /* Ensure it stays behind all content */
+}
+
+/* Layout Specifics */
+body.dark-mode .ant-layout {
+    background: transparent !important; /* Transparent to let the body background show through */
+}
+
+body.dark-mode .ant-layout-header {
+    background: rgba(28, 44, 62, 0.9) !important; /* Semi-transparent for consistency */
+    color: #E5E6E8 !important;
+}
+
+body.dark-mode .ant-layout-footer {
+    background: rgba(28, 44, 62, 0.9) !important;
+    color: #E5E6E8 !important;
+}
+
+/* Fix for Problematic White Area (ant-spin-container) */
+body.dark-mode .ant-spin-container {
+    background: #001529 !important; /* Match the table background */
+    margin: 0 !important; /* Remove all margins */
+    padding: 2rem 0 !important; /* Ensure proper vertical spacing only */
+    max-width: 100% !important; /* Utilize full width */
+    box-shadow: 0 0.625rem 1.25rem rgba(0, 0, 0, 0.1) !important; /* Same box shadow */
+}
+
+/* Password Table Parent Container */
+body.dark-mode .ant-table-wrapper {
+    margin: 0 !important; /* Remove all outer margins */
+    padding: 0 !important; /* Remove inner padding */
+    border: none !important; /* Ensure no border around the wrapper */
+    background: transparent !important; /* Transparent to blend with the parent */
+    box-shadow: none !important; /* Remove shadow */
+    overflow: hidden; /* Prevent content from overflowing rounded corners */
+}
+
+/* Password Table Styles */
+body.dark-mode .ant-table {
+    width: 100% !important; /* Utilize full width */
+    background: #001529 !important; /* Dark blue background for dark mode */
+    color: #ffffff !important; /* White text for readability */
+    border: none !important; /* Remove table border */
+    box-shadow: none !important; /* Remove outer shadow */
+    overflow: hidden; /* Ensure rounded corners apply to content */
+    border-radius: 8px !important; /* Rounded corners */
+}
+
+/* Table Header Styles */
+body.dark-mode .ant-table th {
+    background: #00263E !important; /* Slightly darker blue for contrast */
+    color: #ffffff !important; /* White text */
+    font-size: 1rem !important; /* Same font size as light mode */
+    padding: 1.5rem 1.25rem !important; /* Increased padding for height */
+    border-bottom: none !important; /* Removed bold stroke under the header row */
+}
+
+/* Table Cell Styles */
+body.dark-mode .ant-table td {
+    background: #001529 !important; /* Match table background */
+    color: #ffffff !important; /* White text */
+    text-align: left; /* Align text to the left */
+    padding: 1rem 1.25rem !important; /* Increased padding for height */
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important; /* Subtle border */
+}
+
+/* Row Hover Effect */
+body.dark-mode .ant-table tr:hover td {
+    background: #00314D !important; /* Slightly lighter blue on hover */
+    color: #ffffff !important; /* Ensure text remains white */
+}
+/* Specific targeting for the Ant Design button in dark mode */
+body.dark-mode .ant-btn {
+    background-color: #001529 !important; /* Dark blue background */
+    color: #e5e6e8 !important; /* Light text for readability */
+    border: 1px solid rgba(255, 255, 255, 0.2) !important; /* Subtle border */
+    transition: background-color 0.3s ease, color 0.3s ease; /* Smooth transitions */
+}
+
+/* Hover effect for the button */
+body.dark-mode .ant-btn:hover {
+    background-color: #177ddc !important; /* Lighter blue background on hover */
+    color: #ffffff !important; /* White text on hover */
+}
+
+/* Focus effect for the button */
+body.dark-mode .ant-btn:focus {
+    background-color: #001529 !important; /* Retain dark blue on focus */
+    outline: none !important; /* Remove default focus outline */
+    box-shadow: 0 0 0 2px rgba(23, 125, 220, 0.6); /* Optional blue focus ring */
+}
+
+
+
+
+/* Specifically target the active pagination item */
+body.dark-mode .ant-pagination-item-active {
+    background-color: #001529 !important; /* Dark blue background */
+    color: #ffffff !important; /* White text for better contrast */
+    border: 1px solid rgba(255, 255, 255, 0.3) !important; /* Subtle border for visibility */
+}
+
+
+/* Targeting all numbered pagination items */
+body.dark-mode .ant-pagination-item {
+    background-color: transparent !important; /* Transparent for non-active items */
+    color: #e5e6e8 !important; /* Light gray text for non-active items */
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+
+/* Ensure text inside pagination items is styled correctly */
+body.dark-mode .ant-pagination-item a {
+    color: #e5e6e8 !important; /* Light text for numbers */
+    text-align: center;
+}
+
+/* Hover effect for numbered pagination items */
+body.dark-mode .ant-pagination-item:hover {
+    background-color: #00314D !important; /* Slightly lighter dark blue on hover */
+    color: #ffffff !important; /* White text on hover */
+}
+
+/* Target inner text of the active item */
+body.dark-mode .ant-pagination-item-active {
+    color: #ffffff !important; /* White text for the current page */
+    background-color: #001529 !important; /* Optional: Dark blue background */
+    border: 1px solid rgba(255, 255, 255, 0.3) !important; /* Subtle border for clarity */
+}
+
+
+
+/* Breadcrumb Styles */
+body.dark-mode .ant-breadcrumb {
+    background: #001529 !important; /* Match table background */
+    color: #ffffff !important; /* White text for all breadcrumb text */
+    padding: 0.75rem 1.25rem !important; /* Adjust padding */
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.1) !important; /* Add subtle shadow */
+}
+
+body.dark-mode .ant-breadcrumb a {
+    color: #ffffff !important; /* White color for links */
+    text-decoration: none !important; /* Remove underline */
+    transition: color 0.3s ease;
+}
+
+body.dark-mode .ant-breadcrumb .ant-breadcrumb-link {
+    color: #ffffff !important; /* Ensure group names are also white */
+}
+
+body.dark-mode .ant-breadcrumb a:hover {
+    color: #E5E6E8 !important; /* Slightly lighter white on hover */
+}
+
+body.dark-mode .ant-breadcrumb-separator {
+    color: #ffffff !important; /* Ensure breadcrumb separators are white */
+}
+
+/* Search Bar Styles */
+body.dark-mode .custom-search-bar {
+    margin: 2% auto; /* Center alignment */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 1rem; /* Match padding of white mode */
+    width: 80%; /* Match width of white mode */
+    max-width: 50rem; /* Match max-width of white mode */
+    position: relative;
+    overflow: hidden;
+    background: rgba(0, 21, 41, 0.6) !important; /* Semi-transparent dark background */
+    border-radius: 20px; /* Match rounded corners of white mode */
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.2) !important; /* Subtle shadow */
+    color: #ffffff !important; /* White text */
+}
+
+/* Input Field Styles */
+body.dark-mode .custom-search-bar input {
+    width: 100%; /* Full width */
+    padding: 0.9375rem 1.875rem; /* Match padding of white mode */
+    font-size: 1.125rem; /* Match font size of white mode */
+    border: none;
+    border-radius: 1.25rem; /* Match rounded corners of white mode */
+    outline: none;
+    background: rgba(0, 21, 41, 0.7) !important; /* Slightly lighter dark background */
+    color: #ffffff !important; /* White text */
+    box-shadow: inset 0 0 0.25rem rgba(0, 0, 0, 0.5) !important; /* Subtle inset shadow */
+    transition: all 0.4s ease-in-out; /* Smooth transitions */
+}
+
+body.dark-mode .custom-search-bar input::placeholder {
+    color: rgba(255, 255, 255, 0.5) !important; /* Light placeholder text */
+    font-weight: 300 !important; /* Lighter font for placeholder */
+}
+
+body.dark-mode .custom-search-bar input:focus {
+    background: rgba(0, 21, 41, 0.9) !important; /* Slightly darker on focus */
+    outline: none !important; /* Remove default outline */
+    box-shadow: 0 0 0.125rem rgba(47, 114, 237, 0.5) !important; /* Subtle glow effect */
+}
+
+/* Search Button Styles */
+body.dark-mode .custom-search-bar .ant-input-search-button {
+    height: 3.625rem; /* Match height of white mode */
+    width: 3.625rem; /* Match width of white mode */
+    border: none;
+    border-radius: 1.25rem; /* Match rounded corners of white mode */
+    background: #177ddc !important; /* Dark mode button color */
+    color: #ffffff !important; /* White text for button */
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.2) !important; /* Button shadow */
+    transition: background-color 0.4s ease, box-shadow 0.4s ease;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+}
+
+body.dark-mode .custom-search-bar .ant-input-search-button:hover {
+    background: #0056b3 !important; /* Darker blue on hover */
+    box-shadow: 0 0.125rem 0.5rem rgba(47, 114, 237, 0.4) !important; /* Enhanced hover shadow */
+}
+
+
+
+/* General Dark Mode Modal Styles */
+body.dark-mode .ant-modal {
+    background-color: #001529 !important; /* Dark blue background */
+    color: #ffffff !important; /* Bright white text */
+}
+
+/* Modal Header */
+body.dark-mode .ant-modal-header {
+    background-color: #001529 !important; /* Dark blue background for header */
+    color: #ffffff !important; /* Bright white text for header */
+    font-weight: bold; /* Make headers stand out */
+}
+
+/* Modal Body */
+body.dark-mode .ant-modal-body {
+    background-color: #001529 !important; /* Dark blue background for body */
+    color: #ffffff !important; /* White text for content */
+}
+
+/* Modal Footer */
+body.dark-mode .ant-modal-footer {
+    background-color: #001529 !important; /* Dark blue background for footer */
+    color: #ffffff !important; /* White text for footer */
+}
+
+/* Input Fields */
+body.dark-mode .ant-modal input,
+body.dark-mode .ant-modal textarea {
+    background-color: #112a45 !important; /* Slightly lighter dark blue for inputs */
+    color: #ffffff !important; /* White text */
+    border: 1px solid rgba(255, 255, 255, 0.3) !important; /* Subtle border */
+}
+
+body.dark-mode .ant-modal input::placeholder,
+body.dark-mode .ant-modal textarea::placeholder {
+    color: rgba(255, 255, 255, 0.6) !important; /* Lighter placeholder text */
+}
+
+/* Buttons in Footer */
+body.dark-mode .ant-modal-footer .ant-btn {
+    background-color: #0056b3 !important; /* Dark blue button background */
+    color: #ffffff !important; /* White text */
+    border: none !important;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+body.dark-mode .ant-modal-footer .ant-btn:hover {
+    background-color: #177ddc !important; /* Slightly lighter blue on hover */
+    color: #ffffff !important; /* Keep white text on hover */
+}
+
+/* Tabs in Modals */
+body.dark-mode .ant-tabs-tab {
+    color: #e5e6e8 !important; /* Light gray text for inactive tabs */
+}
+
+body.dark-mode .ant-tabs-tab-active {
+    color: #ffffff !important; /* Bright white for active tab */
+    font-weight: bold; /* Highlight active tab */
+}
+/* Modal Title Styling */
+body.dark-mode .ant-modal-title {
+    color: #ffffff !important; /* Bright white for the modal title */
+    font-weight: bold; /* Make it stand out */
+}
+/* Match modal content background to the modal */
+body.dark-mode .ant-modal-content {
+    background-color: #001529 !important; /* Dark blue background to match the modal */
+    color: #ffffff !important; /* Ensure text remains white */
+    border-radius: 8px; /* Optional: Maintain rounded corners */
+    box-shadow: none !important; /* Remove any shadow that might cause contrast */
+}
+/* Remove white margins and background from the input wrapper */
+body.dark-mode .ant-input-affix-wrapper {
+    background-color: #112a45 !important; /* Match input fields to dark theme */
+    color: #ffffff !important; /* Ensure text inside is white */
+    border: 1px solid rgba(255, 255, 255, 0.3) !important; /* Subtle border for consistency */
+    padding: 4px 8px !important; /* Adjust padding if needed */
+    box-shadow: none !important; /* Remove any shadows */
+}
+
+/* Ensure text inside the input remains styled */
+body.dark-mode .ant-input-affix-wrapper input {
+    background-color: #112a45 !important; /* Match input background to wrapper */
+    color: #ffffff !important; /* White text for readability */
+    border: none !important; /* Remove inner borders */
+}
+
+/* Remove white focus outline when clicking inside */
+body.dark-mode .ant-input-affix-wrapper:focus-within {
+    outline: none !important;
+    border-color: #177ddc !important; /* Optional: Add a subtle blue border on focus */
+}
+/* Remove outline and enhance focus styling for the 'Show All' button */
+body.dark-mode .ant-btn-link {
+    background-color: transparent !important; /* Remove the dark background */
+    color: #ffffff !important; /* Keep the text white for visibility */
+    border: none !important; /* Remove any borders */
+    box-shadow: none !important; /* Remove shadow */
+    outline: none !important; /* Remove the default browser outline */
+    transition: color 0.3s ease; /* Smooth transition for text color */
+}
+
+/* Add a custom focus effect */
+body.dark-mode .ant-btn-link:focus {
+    background-color: transparent !important; /* Ensure no background on focus */
+    color: #177ddc !important; /* Slightly lighter blue for focused state */
+    box-shadow: 0 0 4px 2px rgba(23, 125, 220, 0.6); /* Subtle blue glow for focus */
+    outline: none !important; /* Remove the default focus outline */
+}
+
+
+/* Hover effect for the button */
+body.dark-mode .ant-btn-link:hover {
+    background-color: transparent !important; /* Ensure no background on hover */
+    color: #177ddc !important; /* Slightly lighter blue text on hover */
+    box-shadow: none !important; /* Ensure no extra shadows */
+}
+
+
+
+
+
+
+
+
+/* Dark Mode Styles for Save New Password Modal */
+body.dark-mode .save-password-modal {
+    background-color: #001529 !important;
+    color: #e5e6e8 !important;
+}
+
+body.dark-mode .save-password-modal input,
+body.dark-mode .save-password-modal textarea {
+    background-color: #112a45 !important; /* Input fields in dark mode */
+    color: #e5e6e8 !important; /* Light text */
+    border: 1px solid rgba(255, 255, 255, 0.2) !important; /* Subtle border */
+    border-radius: 4px;
+}
+
+body.dark-mode .save-password-modal input::placeholder,
+body.dark-mode .save-password-modal textarea::placeholder {
+    color: rgba(255, 255, 255, 0.5) !important; /* Subtle placeholder text */
+}
+/* Style for the "X" close button in modals */
+body.dark-mode .ant-modal-close {
+    color: #ffffff !important; /* Set the icon color to white */
+    background-color: transparent !important; /* Ensure the background is transparent */
+    transition: color 0.3s ease; /* Smooth transition for hover */
+}
+
+/* Optional: Add a hover effect for better interactivity */
+body.dark-mode .ant-modal-close:hover {
+    color: #e5e6e8 !important; /* Slightly lighter white on hover */
+}
+
+
+/* Remove the white line under the Ant Design tabs */
+body.dark-mode .ant-tabs-ink-bar {
+    background-color: transparent !important; /* Make the ink-bar background transparent */
+}
+
+/* Ensure no borders or extra lines for the tab buttons */
+body.dark-mode .ant-tabs-tab {
+    border: none !important; /* Remove any default borders */
+}
+
+/* Optionally set hover styles for better appearance */
+body.dark-mode .ant-tabs-tab:hover {
+    color: #ffffff !important; /* Ensure hover text is white */
+    background-color: transparent !important; /* Avoid hover background */
+}
+
+/* Active tab style (Edit button in your screenshot) */
+body.dark-mode .ant-tabs-tab-active {
+    color: #177ddc !important; /* Highlight active tab in blue */
+    font-weight: bold !important; /* Make it stand out */
+    background-color: transparent !important; /* Ensure no background */
+}
+/* Eye icon for password visibility in dark mode */
+body.dark-mode .ant-input-password-icon svg {
+    fill: #ffffff !important; /* Change the icon color to white */
+}
+/* Make dropdown arrow white */
+body.dark-mode .ant-select-selector .ant-select-arrow svg {
+    fill: #ffffff !important; /* Ensure the SVG arrow is white */
+}
+
+/* Dropdown menu styles */
+body.dark-mode .ant-select-dropdown {
+    background-color: #001529 !important; /* Match modal background */
+    color: #ffffff !important; /* Ensure text is white */
+    border: 1px solid rgba(255, 255, 255, 0.3) !important; /* Subtle border */
+}
+
+/* Dropdown menu items */
+body.dark-mode .ant-select-item-option {
+    color: #ffffff !important; /* White text for options */
+    background-color: transparent !important; /* Transparent background */
+    border: none !important;
+}
+
+/* Hover effect for dropdown menu items */
+body.dark-mode .ant-select-item-option:hover {
+    background-color: #0056b3 !important; /* Slightly lighter blue on hover */
+    color: #ffffff !important; /* Ensure text remains white */
+}
+
+/* Active dropdown menu item */
+body.dark-mode .ant-select-item-option-selected {
+    background-color: #177ddc !important; /* Highlight active option */
+    color: #ffffff !important; /* Ensure text is white */
+}
+
+
+
+
+
+
+/* General Dark Mode Styling for View Modal */
+body.dark-mode .view-modal {
+    background-color: #001529 !important; /* Maintain the dark background */
+    color: #ffffff !important; /* Set all text to white */
+}
+
+/* Ensure all child elements' text in the modal is white */
+body.dark-mode .view-modal * {
+    color: #ffffff !important; /* Force all text inside to white */
+}
+
+/* Ensure placeholder text in inputs is also styled */
+body.dark-mode .view-modal input::placeholder,
+body.dark-mode .view-modal textarea::placeholder {
+    color: rgba(255, 255, 255, 0.6) !important; /* Subtle white for placeholders */
+}
+/* Remove outline from the visibility button */
+body.dark-mode .ant-btn-icon-only {
+    background-color: #001529 !important; /* Ensure consistent background */
+    color: #ffffff !important; /* White icon color */
+    border: none !important; /* Remove border */
+    box-shadow: none !important; /* Remove shadow */
+    outline: none !important; /* Remove focus outline */
+    padding: 0 !important; /* Adjust padding if needed */
+    transition: background-color 0.3s ease, color 0.3s ease; /* Smooth transitions */
+}
+
+/* Add a custom focus style for better accessibility */
+body.dark-mode .ant-btn-icon-only:focus {
+    background-color: #177ddc !important; /* Slightly lighter blue on focus */
+    color: #ffffff !important; /* Ensure icon remains white */
+    outline: none !important; /* Remove the default outline */
+    box-shadow: 0 0 4px 2px rgba(23, 125, 220, 0.6); /* Add a subtle blue glow */
+}
+
+/* Hover state for the button */
+body.dark-mode .ant-btn-icon-only:hover {
+    background-color: #0056b3 !important; /* Slightly lighter blue on hover */
+    color: #ffffff !important; /* Keep icon color white */
+    box-shadow: none !important; /* Ensure no extra shadows */
+}
+
+
+
+
+
+
+
+
+
+
+
+
+/* Dark Mode Styles for History Modal */
+body.dark-mode .history-modal {
+    background-color: #001529 !important;
+    color: #e5e6e8 !important;
+}
+
+body.dark-mode .history-modal table {
+    background-color: #001529 !important; /* Table background */
+    color: #e5e6e8 !important; /* Table text */
+    border-collapse: collapse; /* Remove gaps between cells */
+}
+
+body.dark-mode .history-modal table th,
+body.dark-mode .history-modal table td {
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+body.dark-mode .history-modal table th {
+    background-color: #112a45 !important;
+    color: #e5e6e8 !important;
+}
+
+
+
+/* Styling for the Select Wrapper */
+body.dark-mode .ant-select-selector {
+    background-color: #112a45 !important; /* Dark blue background */
+    color: #ffffff !important; /* White text */
+    border: 1px solid rgba(255, 255, 255, 0.3) !important; /* Subtle border */
+    box-shadow: none !important; /* Remove any shadow */
+    outline: none !important; /* Remove default outline */
+    padding: 4px 8px !important; /* Adjust padding */
+}
+
+/* Placeholder Text */
+body.dark-mode .ant-select-selector .ant-select-selection-placeholder {
+    color: rgba(255, 255, 255, 0.6) !important; /* Light white for placeholder text */
+    font-style: italic; /* Optional: Make placeholder distinguishable */
+}
+
+/* Selected Text */
+body.dark-mode .ant-select-selector .ant-select-selection-item {
+    color: #ffffff !important; /* White text for selected value */
+}
+
+/* Input Inside the Select */
+body.dark-mode .ant-select-selector input {
+    background-color: transparent !important; /* Transparent to blend with the wrapper */
+    color: #ffffff !important; /* White input text */
+    border: none !important; /* Remove input border */
+    box-shadow: none !important; /* Remove input shadow */
+    outline: none !important; /* Remove focus outline */
+}
+
+/* Focus State for the Select */
+body.dark-mode .ant-select-selector:focus-within {
+    outline: none !important;
+    border-color: #177ddc !important; /* Optional: Blue border on focus */
+}
+
+/* Dropdown Menu */
+body.dark-mode .ant-select-dropdown {
+    background-color: #112a45 !important; /* Match dropdown to dark theme */
+    color: #ffffff !important; /* White text for dropdown items */
+    border: 1px solid rgba(255, 255, 255, 0.3) !important; /* Subtle border */
+    box-shadow: none !important; /* Remove shadow */
+}
+
+/* Dropdown Item Hover */
+body.dark-mode .ant-select-item-option:hover {
+    background-color: #0056b3 !important; /* Slightly lighter blue on hover */
+    color: #ffffff !important;
+}
+
+/* Remove any unwanted outlines for dropdown items */
+body.dark-mode .ant-select-item-option {
+    outline: none !important;
+}
+
+/* Ensure the button is always bright blue */
+body.dark-mode .ant-btn-primary {
+    background-color: #177ddc !important; /* Bright blue color */
+    color: #ffffff !important; /* White text */
+    border: none !important; /* Remove border */
+}
+
+/* Optional: Ensure no hover effect changes the color */
+body.dark-mode .ant-btn-primary:hover,
+body.dark-mode .ant-btn-primary:focus {
+    background-color: #177ddc !important; /* Same bright blue on hover/focus */
+    color: #ffffff !important; /* Keep text white */
+    border: none !important; /* Maintain no border */
+    box-shadow: none !important; /* Remove any shadow effects */
+}
+
+/* Dark mode adjustment for the specific element */
+body.dark-mode .ant-modal .ant-modal-close-x {
+    background-color: #001529 !important; /* Set the background to dark blue */
+    color: #ffffff !important; /* Keep the icon or text inside white for contrast */
+    border: none !important; /* Remove any border if present */
+    transition: background-color 0.3s ease; /* Smooth transition for hover effect */
+}
+
+/* Optional: Add hover effect for better user experience */
+body.dark-mode .ant-modal .ant-modal-close-x:hover {
+    background-color: #00314D !important; /* Slightly lighter dark blue for hover effect */
+    color: #ffffff !important;
+}
+
+
+body.dark-mode .history-modal .ant-btn {
+    color: #ffffff !important; /* Set button text to white */
+    background-color: #001529 !important; /* Optional: dark blue background */
+    border: none !important; /* Remove borders */
+    transition: color 0.3s ease, background-color 0.3s ease; /* Smooth transitions */
+}
+
+/* Hover effect for pagination buttons */
+body.dark-mode .history-modal .ant-btn:hover {
+    color: #ffffff !important; /* Keep text white */
+    background-color: #0056b3 !important; /* Slightly lighter blue on hover */
+}
+
+/* Pagination number box with white outline and text */
+body.dark-mode .pagination-number-box {
+    color: #ffffff !important; /* White text for the current page number */
+    background-color: #001529 !important; /* Dark blue background */
+    border: 2px solid #ffffff !important; /* White outline */
+    border-radius: 4px; /* Rounded corners */
+    text-align: center; /* Center-align the text */
+    line-height: 40px; /* Ensure vertical centering */
+    width: 40px;
+    height: 40px;
+    font-size: 16px;
+    margin: 0 12px; /* Spacing between buttons */
+}
+
+
+body.dark-mode .share-box {
+    background-color: #001529 !important; /* Dark blue background */
+    border: 0.5px solid #d3d3d3 !important; /* Slimmer border with light grey color */
+    border-radius: 8px; /* Optional: Keep rounded corners */
+    padding: 10px; /* Maintain padding */
+    box-shadow: none !important;
+}
+
+
+body.dark-mode .share-switch {
+    border: 1px solid #ffffff !important; /* White border for better visibility */
+}
+
+body.dark-mode .share-switch.ant-switch-checked {
+    background-color: #0056b3 !important; /* Ensure distinct background when checked */
+    border-color: #ffffff !important; /* Keep the border white */
+
+}
+
+body.dark-mode .share-switch .ant-switch-inner {
+    color: #ffffff !important; /* Ensure the text inside the switch remains white */
+}
+
+body.dark-mode h2.ant-typography {
+    color: #ffffff !important; /* White color for better visibility in dark mode */
+}
+
+body.dark-mode span.ant-typography.ant-typography-secondary {
+    color: #d3d3d3 !important; /* Very light grey for subtle contrast */
+}
+
+
+
+

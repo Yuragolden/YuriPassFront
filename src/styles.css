@@ -1,0 +1,654 @@
+:root {
+    /* Light Mode Colors */
+    --background-color: #ffffff;
+    --text-color: #333333;
+    --primary-color: #1890ff;
+    --secondary-color: #f0f0f0;
+
+    /* Dark Mode Colors */
+    --dark-background: #141414;
+    --dark-primary-color: #177ddc;
+    --dark-secondary-color: #112a45;
+    --dark-text-color: #f0f0f0;
+    --dark-accent-color: #15395b;
+}
+
+
+* {
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: 'Roboto', sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #e8e8e8;
+    font-size: 16px;
+}
+
+/* Headings */
+h1, h2, h3, h4, h5, h6 {
+    margin-top: 0;
+}
+
+h1 { font-size: 1.375rem; }
+h2 { font-size: 1.25rem; }
+h3 { font-size: 1.125rem; }
+h4 { font-size: 1rem; }
+h5 { font-size: 0.875rem; }
+h6 { font-size: 0.75rem; }
+
+/* Code styling */
+code {
+    font-size: 1.2em;
+}
+
+/* List styling */
+ul {
+    padding-inline-start: 1.25rem;
+}
+
+/* Hide action icons by default */
+.ant-table-row .action-icon {
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+}
+
+/* Show action icons when row is hovered */
+.ant-table-row:hover .action-icon {
+    visibility: visible;
+    opacity: 1;
+}
+
+/* Custom styles for the search bar */
+.custom-search-bar {
+    margin: 2% auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 1rem;
+    width: 80%;
+    max-width: 50rem;
+    position: relative;
+    overflow: hidden;
+    background: rgba(253, 253, 253, 0.87);
+    border-radius: 20px;
+}
+
+/* Custom styles for the search bar input */
+.custom-search-bar input {
+    width: 100%;
+    padding: 0.9375rem 1.875rem;
+    font-size: 1.125rem;
+    border: none;
+    border-radius: 1.25rem;
+    outline: none;
+    transition: all 0.4s ease-in-out;
+    background: linear-gradient(145deg, #ffffff, #f0f0f0);
+    color: #333;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1), inset 0 -0.25rem 0.5rem rgba(255, 255, 255, 0.8);
+}
+
+/* Neon glow effect on focus */
+.custom-search-bar input:focus {
+    background: linear-gradient(145deg, #ffffff, rgba(231, 224, 255, 0.09));
+    /*box-shadow: 0 0 1.25rem rgba(22, 119, 255, 0.8), inset 0 0 0.625rem rgba(22, 119, 255, 0.3);*/
+    cursor: pointer;
+}
+
+/* Placeholder animation */
+.custom-search-bar input::placeholder {
+    color: #888;
+    font-weight: 300;
+    transition: all 0.4s ease;
+}
+
+.custom-search-bar input:focus::placeholder {
+    opacity: 0;
+    transform: translateY(-1.5625rem);
+    font-size: 1rem;
+}
+
+/* Animated border effect */
+.custom-search-bar::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 1.25rem;
+    background: linear-gradient(145deg, rgba(22, 119, 255, 0.3), rgba(22, 119, 255, 0.7));
+    z-index: -1;
+    transition: all 0.4s ease;
+    filter: blur(0.5rem);
+    opacity: 0.5;
+    transform: scale(1.05);
+}
+
+.custom-search-bar input:focus ~ ::before {
+    opacity: 1;
+}
+
+/* Remove the search button styling */
+.custom-search-bar .ant-input-search-button {
+    height: 3.625rem;
+    width: 3.625rem;
+    border: none;
+    border-radius: 1.25rem;
+    background: rgba(47, 114, 237, 0.68);
+    color: #ffffff;
+    box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: background-color 0.4s ease, box-shadow 0.4s ease;
+    cursor: pointer;
+}
+
+/* Custom styles for the sidebar menu */
+.ant-menu {
+    position: sticky;
+    top: 14%;
+    margin-top: 0;
+    background-color: #001529;
+    border-right: none;
+}
+
+/* Custom styling for menu items */
+.ant-menu-item {
+    font-size: 0.875rem;
+    color: #fff;
+    transition: background-color 0.3s ease;
+}
+
+.ant-menu-item:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Custom styles for selected menu item */
+.ant-menu-item-selected {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Custom styles for submenu */
+.ant-menu-submenu-title {
+    font-size: 0.875rem;
+    color: #fff;
+}
+
+/* Custom styles for submenu items */
+.ant-menu-submenu > .ant-menu {
+    background-color: #001529;
+}
+
+/* Custom styles for the modal */
+.ant-modal {
+    border-radius: 0.625rem;
+}
+
+.ant-modal-header {
+    background-color: #1677ff;
+    color: #fff;
+}
+
+.ant-modal-footer {
+    border-top: none;
+}
+
+.ant-btn-primary {
+    background-color: #1677ff;
+    border-color: #1677ff;
+}
+
+.ant-btn-default {
+    color: #1677ff;
+    border-color: #1677ff;
+}
+
+/* Custom styles for the header */
+.ant-layout-header {
+    background-color: #fff;
+    box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
+}
+
+/* Custom styles for the footer */
+.ant-layout-footer {
+    background-color: #001529;
+    color: #fff;
+}
+
+/* Custom styles for the content area */
+.ant-layout-content {
+    padding: 1rem;
+}
+
+/* Custom styles for breadcrumb */
+.ant-breadcrumb {
+    background-color: #fff;
+    border-radius: 0.25rem;
+    padding: 0.5rem 1rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.1);
+}
+
+/* Custom styles for buttons */
+.ant-btn {
+    border-radius: 0.25rem;
+    font-weight: 600;
+}
+
+.ant-btn-primary {
+    background-color: #1677ff;
+    border-color: #1677ff;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.ant-btn-primary:hover {
+    background-color: #0056b3;
+    border-color: #0056b3;
+}
+
+/* Table Container */
+.ant-spin-container {
+    margin: 0.625rem auto;
+    padding: 1.875rem;
+    max-width: 100%;
+    background-color: #ffffff;
+    border-radius: 0.625rem;
+    box-shadow: 0 0.625rem 1.25rem rgba(0, 0, 0, 0.1);
+}
+
+/* Header Styling */
+.ant-table th {
+    background-color: #f5f5f5;
+    color: #2c3e50;
+    padding: 1.25rem;
+    font-size: 1rem;
+    position: relative;
+    border-bottom: 3px solid #34495e;
+}
+
+/* Header hover effect */
+.ant-table th:hover::after {
+    transform: scaleX(1);
+}
+
+/* Cell Styling */
+.ant-table td {
+    background-color: #ffffff;
+    color: #2c3e50;
+    padding: 0.75rem 1.25rem;
+    border-bottom: 1px solid #ecf0f1;
+    border-radius: 0.5rem;
+}
+
+/* Row Styling */
+.ant-table tr:hover {
+    background-color: #f4f4f4;
+}
+
+/* Pagination styles */
+.ant-pagination {
+    margin: 1.25rem 0;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 48rem) { /* 768px */
+    .custom-search-bar {
+        width: 90%;
+    }
+
+    .ant-table th, .ant-table td {
+        padding: 0.625rem 0.9375rem;
+        font-size: 0.875rem;
+    }
+}
+
+@media (max-width: 30rem) { /* 480px */
+    .custom-search-bar {
+        flex-direction: column; /* Stack elements for mobile */
+        padding: 0.625rem; /* Less padding */
+        width: 95%; /* Adjust width for mobile */
+    }
+
+    .custom-search-bar input {
+        padding: 0.625rem; /* Adjust input padding */
+        font-size: 1rem; /* Adjust font size */
+    }
+
+    .ant-table {
+        font-size: 0.75rem; /* Smaller font size for mobile */
+    }
+
+    .ant-table th, .ant-table td {
+        padding: 0.5rem 0.625rem; /* Adjust padding for mobile */
+    }
+
+    h1 { font-size: 1.25rem; } /* 20px */
+    h2 { font-size: 1.125rem; } /* 18px */
+    h3 { font-size: 1rem; } /* 16px */
+}
+
+/* Miscellaneous styles */
+.hidden {
+    display: none;
+}
+
+/* Transition styles */
+.transition {
+    transition: all 0.3s ease;
+}
+
+/* Scrollbar styles */
+::-webkit-scrollbar {
+    width: 0.5rem;
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: #888;
+    border-radius: 0.625rem;
+}
+
+::-webkit-scrollbar-track {
+    background-color: #f0f0f0;
+}
+
+
+/* Base styles for the hamburger menu */
+
+
+/* Mobile layout styles */
+@media (max-width: 75rem) { /* 1200px */
+
+    .sidebar {
+        display: none; /* Hide the sidebar */
+    }
+
+    .main-content {
+        width: 100vw; /* Full width for main content */
+        padding: 2vh; /* Padding for main content */
+    }
+
+    .ant-layout-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center; /* Align items in header */
+        padding: 0 2vw; /* Use vw for padding */
+    }
+
+    /* Ensure table responsiveness */
+    .ant-table {
+        width: 100%; /* Full width for table */
+        overflow-x: auto; /* Allow horizontal scrolling */
+        display: block; /* Allow block display for better responsiveness */
+    }
+
+    .ant-table thead, .ant-table tbody {
+        display: block; /* Keep thead and tbody block for responsive layout */
+    }
+
+    .ant-table tr {
+        display: table; /* Keep rows as table elements */
+        width: 100%; /* Ensure rows take full width */
+        margin-bottom: 1vh; /* Space between rows */
+    }
+
+    .ant-table th, .ant-table td {
+        width: auto; /* Let columns adjust to content */
+        padding: 0.75rem; /* Maintain padding for readability */
+    }
+
+    .custom-search-bar {
+        flex-direction: column; /* Stack elements */
+        width: 100%; /* Full width */
+        margin: 0 auto; /* Center */
+    }
+
+    .custom-search-bar input {
+        width: 100%; /* Full width */
+        margin-bottom: 1vh; /* Space between input and button */
+    }
+}
+
+.button-reset{
+    border-color: #D9D9D9;
+}
+
+.button-reset:hover{
+    border-color: #2F72ED;
+}
+
+
+/* Common Modal Styling for consistency across both modals */
+
+.modal-common .ant-modal-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 1rem;
+}
+
+.modal-common .ant-modal-body {
+    padding: 30px;
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    margin-bottom: 20px;
+    /*display: flex;*/
+    /*flex-direction: column;*/
+    /*gap: 8px; !* Smaller gap for tighter layout *!*/
+}
+
+.modal-common input,
+.modal-common select,
+.modal-common textarea {
+    border-radius: 4px;
+    padding: 10px;
+    font-size: 14px;
+    border: 1px solid #d1d9e6;
+    transition: border-color 0.3s ease;
+    width: 100%;
+}
+
+.modal-common input:focus,
+.modal-common select:focus,
+.modal-common textarea:focus {
+    border-color: #2f72ed;
+}
+
+.modal-common label {
+    font-size: 14px;
+    color: #333;
+    font-weight: 500;
+    margin-bottom: 4px;
+    display: inline-block; /* Ensure label is aligned */
+}
+
+/* Button styling */
+.modal-common .ant-btn {
+    border-radius: 4px;
+    font-size: 14px;
+    padding: 8px 16px;
+    transition: background-color 0.2s ease;
+}
+
+.modal-common .ant-btn-primary {
+    background-color: #2f72ed;
+    border: none;
+}
+
+.modal-common .ant-btn-primary:hover {
+    background-color: #3b4e6a;
+}
+
+.modal-common .ant-btn-default {
+    background-color: #ffffff;
+}
+
+.modal-common .ant-btn-default:hover {
+    background-color: #d9d9d9;
+}
+
+/* Custom Password Details Modal Styling */
+/*.password-details-modal {*/
+/*    padding: 20px;*/
+/*    background-color: #f9fafc;*/
+/*    border-radius: 10px;*/
+/*}*/
+
+.password-details-modal .ant-modal-title {
+    font-size: 22px;
+    font-weight: 600;
+    color: #333;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Cleaner font */
+    margin-bottom: 15px;
+}
+
+.password-details-modal .ant-modal-body {
+    padding: 24px;
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    /*display: flex;*/
+    /*flex-direction: column;*/
+    gap: 16px; /* Space between sections */
+}
+
+/* Styling for labels and input areas */
+.password-details-modal label {
+    font-size: 14px;
+    color: #4b6584;
+    font-weight: 500;
+    margin-bottom: 5px; /* Space between label and input */
+    display: inline-block;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.password-details-modal p {
+    font-size: 14px;
+    color: #4b6584;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin-bottom: 12px; /* Separation between fields */
+     padding-bottom: 12px;
+    border-bottom: 1px #e0e0e0;
+    border-bottom-style: dashed;
+}
+
+.password-details-modal .input-wrapper {
+    margin-bottom: 16px; /* Separation between input fields */
+    padding-bottom: 12px;
+    border-bottom: 1px solid #e0e0e0; /* Light separator between fields */
+}
+
+/* Edit and History sections */
+.password-details-modal .tab-section {
+    padding: 16px;
+    background-color: #f7f7f7;
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
+    margin-bottom: 20px;
+}
+
+.password-details-modal .tab-section h3 {
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 12px;
+}
+
+.password-details-modal .tab-section p {
+    margin-bottom: 8px;
+    color: #4b6584;
+    font-size: 14px;
+}
+
+.password-details-modal .tab-section table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.password-details-modal .tab-section table th,
+.password-details-modal .tab-section table td {
+    padding: 10px;
+    text-align: left;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.password-details-modal .tab-section table th {
+    background-color: #f5f5f5;
+    font-weight: 600;
+    color: #333;
+}
+
+.password-details-modal .tab-section table td {
+    color: #666;
+}
+
+/* Button styling */
+.password-details-modal .ant-btn {
+    margin-top: 10px;
+    border-radius: 4px;
+    font-size: 14px;
+    padding: 10px 16px;
+    transition: background-color 0.2s ease;
+}
+
+.password-details-modal .ant-btn-primary {
+    background-color: #2f72ed;
+    border: none;
+    color: white;
+}
+
+.password-details-modal .ant-btn-primary:hover {
+    background-color: #3b4e6a;
+}
+
+.password-details-modal .ant-btn-default {
+    background-color: #ffffff;
+}
+
+.password-details-modal .ant-btn-default:hover {
+    background-color: #d9d9d9;
+}
+
+/* Password visibility toggle and buttons in input fields */
+.password-details-modal .password-field {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.password-details-modal .password-field button {
+    padding: 4px 8px;
+    font-size: 14px;
+}
+
+
+.right-section {
+    display: flex;
+    align-items: center;
+    margin-right: 5%;
+    justify-content: flex-end; /* Push the switch to the far right */
+}
+
+/* Dark Mode Styles */
+body.dark-mode {
+    background-color: var(--dark-background);
+    color: var(--dark-text-color);
+}
+
+body.dark-mode .group-search-container {
+    background-color: var(--dark-secondary-color);
+    color: var(--dark-text-color);
+}
+
+body.dark-mode .passwords-table-container {
+    background-color: var(--dark-secondary-color);
+    color: var(--dark-text-color);
+    border: 1px solid var(--dark-accent-color);
+}

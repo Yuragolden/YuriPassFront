@@ -1,0 +1,141 @@
+/* General Container Styles */
+.auth-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+  background: linear-gradient(135deg, #001529, #1C2C3E); /* Dark gradient for depth */
+  font-family: 'Poppins', sans-serif;
+  position: relative; /* Ensure child elements can be positioned relative to this */
+}
+
+/* Background Pattern */
+.auth-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: url('../../public/img.png') repeat; /* Add a subtle pattern or texture */
+  opacity: 0.1; /* Light opacity for subtle effect */
+  z-index: 0; /* Send it to the back */
+}
+
+/* Form Wrapper Styles */
+.form-wrapper {
+  background: rgba(255, 255, 255, 0.1); /* Semi-transparent white for a clean look */
+  padding: 40px;
+  border-radius: 15px;
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2); /* Subtle shadow for depth */
+  max-width: 400px;
+  width: 100%;
+  text-align: center;
+  position: relative; /* Ensure it's above the background */
+  z-index: 1; /* Bring it to the front */
+  backdrop-filter: blur(2px);
+}
+
+/* Heading Styles */
+h2 {
+  color: #E5E6E8; /* Light text color for headers */
+  font-size: 28px;
+  margin-bottom: 20px;
+  font-weight: 600; /* Semi-bold for a clean look */
+  text-transform: uppercase; /* Modern touch */
+}
+
+/* Error Message Styles */
+p.error {
+  color: #ff4d4d; /* Bright red for errors */
+  font-size: 14px;
+  margin-bottom: 15px;
+}
+
+/* Input Group Styles */
+.input-group {
+  margin-bottom: 20px;
+  text-align: left;
+}
+
+.input-group label {
+  font-size: 14px;
+  color: #E5E6E8; /* Light label color */
+  margin-bottom: 5px;
+}
+
+.input-group input {
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #7A91E5; /* Subtle blue border */
+  background: #1C2C3E; /* Dark background for inputs */
+  color: #E5E6E8; /* Light text for input */
+  font-size: 16px;
+  transition: border 0.3s;
+}
+
+.input-group input:focus {
+  border-color: #2F72ED; /* Highlighted border on focus */
+}
+
+/* Submit Button Styles */
+.submit-btn {
+  background: #2F72ED; /* Bright blue background */
+  color: #ffffff; /* White text */
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600; /* Semi-bold for emphasis */
+  cursor: pointer;
+  width: 100%;
+  transition: background 0.3s, transform 0.3s;
+}
+
+.submit-btn:hover {
+  background: #7A91E5; /* Lighter blue on hover */
+  transform: translateY(-2px); /* Subtle lift effect */
+}
+
+/* Links Styles */
+.new-to-yuripass, .have-an-acc {
+  color: #E5E6E8; /* Light text for links */
+  font-size: 14px;
+}
+
+.register-link, .login-link {
+  color: #2F72ED; /* Bright blue for links */
+  font-weight: 500; /* Regular weight for modern look */
+  cursor: pointer;
+  text-decoration: none; /* No underline */
+}
+
+.register-link:hover, .login-link:hover {
+  color: #7A91E5; /* Change on hover */
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .form-wrapper {
+    padding: 30px;
+  }
+
+  h2 {
+    font-size: 24px;
+  }
+}
+
+/* Password Toggle Wrapper */
+.password-wrapper {
+  display: flex;
+  align-items: center;
+}
+
+.toggle-password {
+  margin-left: 10px;
+  font-size: 18px; /* Icon size */
+  color: #E5E6E8; /* Light color for icon */
+}
