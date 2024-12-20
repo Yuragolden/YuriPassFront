@@ -631,9 +631,11 @@ ul {
 
 .right-section {
     display: flex;
+    flex-direction: row;
     align-items: center;
     margin-right: 5%;
-    justify-content: flex-end; /* Push the switch to the far right */
+    margin-left: 5%;
+    justify-content: space-between; /* Push the switch to the far right */
 }
 
 /* Dark Mode Styles */

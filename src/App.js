@@ -401,12 +401,11 @@ const handleCancelLogout = () => {
             {/* Plus Button at the bottom-right corner under the table */}
             {/* Conditionally render the "Add New Password" button */}
 
-            {!isLoginPage && !isRegisterPage && !isAboutUsPage && loggedIn && (
+            {!isLoginPage && !isRegisterPage && !isAboutUsPage &&(
                 <div style={{
-                    position: 'fixed',
+                    position: 'absolute',
                     bottom: 24,
                     right: 24,
-                    zIndex: 9999,
                 }}
                 >
                     <SaveNewPassword

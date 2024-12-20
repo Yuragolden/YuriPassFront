@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import './aboutUs.css';
 import { ParallaxProvider, Parallax } from 'react-scroll-parallax';
 import {Link} from "react-router-dom";
+import SaveNewPassword from "./save_new_password";
 
 const AboutUs = () => {
     useEffect(() => {
@@ -13,6 +14,7 @@ const AboutUs = () => {
             document.body.classList.remove('about-us-page');
         };
     }, []);
+    let selectedGroupId = 1;
     return (
         <ParallaxProvider>
             <div className="main-container">
@@ -78,15 +80,19 @@ const AboutUs = () => {
                     <div className="footer-social">
                         <a href="#" className="social-icon"><img src="https://img.icons8.com/ios/50/000000/facebook.png"
                                                                  alt="Facebook"/></a>
-                        <a href="#" className="social-icon"><img src="https://img.icons8.com/ios/50/000000/twitter.png" alt="Twitter" /></a>
-                        <a href="#" className="social-icon"><img src="https://img.icons8.com/ios/50/000000/linkedin.png" alt="LinkedIn" /></a>
-                        <a href="#" className="social-icon"><img src="https://img.icons8.com/ios/50/000000/instagram.png" alt="Instagram" /></a>
+                        <a href="#" className="social-icon"><img src="https://img.icons8.com/ios/50/000000/telegram.png"
+                                                                 alt="Telegram"/></a>
+                        <a href="#" className="social-icon"><img src="https://img.icons8.com/ios/50/000000/linkedin.png"
+                                                                 alt="LinkedIn"/></a>
+                        <a href="#" className="social-icon"><img
+                            src="https://img.icons8.com/ios/50/000000/instagram.png" alt="Instagram"/></a>
                     </div>
                     <p className="footer-text">&copy; 2024 YuriPass. All rights reserved.</p>
                 </div>
+
             </footer>
         </ParallaxProvider>
     );
 };
-// /slka;dhf;lasjlfkjasl;dfk
+
 export default AboutUs;

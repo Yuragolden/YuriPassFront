@@ -506,7 +506,8 @@ const MainPage = ({ groupId, userId, setGroupItems, passwordItems, setPasswordIt
             />
             {/* Switch on the right side */}
             <div className="right-section">
-                <Switch checked={isDarkMode} onChange={toggleDarkMode} />
+                <Button> Create new password</Button>
+                <Switch checked={isDarkMode} onChange={toggleDarkMode}/>
             </div>
 
             <Breadcrumb style={{margin: '16px 0'}} items={breadcrumbItems}>
