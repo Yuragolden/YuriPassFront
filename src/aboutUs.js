@@ -88,5 +88,5 @@ const AboutUs = () => {
         </ParallaxProvider>
     );
 };
-
+// /slka;dhf;lasjlfkjasl;dfk
 export default AboutUs;
