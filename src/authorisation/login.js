@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from '../axiosConfg';
 import { EyeInvisibleOutlined, EyeOutlined } from '@ant-design/icons';
 import { message } from 'antd';
+import { loginUser } from '../api';
 import './login.css';
 
 
@@ -18,19 +19,16 @@ const Login = () => {
         e.preventDefault();
 
         try {
-            const response = await axios.post('/token/',
-                { username, password },
-                {
-                    onUnauthorized: () => navigate('/login') // Handle 401 Unauthorized here
-                }
-            );
-            localStorage.setItem('token', response.data.access);
-            message.success('Login successful! Welcome...');
+            const response = await loginUser({ username, password });
+            localStorage.setItem('token', response.access_token);
+            message.success('Успешный вход! Добро пожаловать...');
             setError('');
             navigate('/passwords'); // Redirect after login success
+
+
         } catch (err) {
-            console.log('Full error:', err);  // Log the entire error object
-            const errorMessage = err.response?.data?.detail || 'Unknown error occurred.';
+            console.log('Ошибочка:', err);  // Log the entire error object
+            const errorMessage = err.response?.data?.detail || 'Неизвестная мне ошибочка.';
             setError(errorMessage);  // Display the error
             // message.error(`Login failed: ${errorMessage}`);
         }

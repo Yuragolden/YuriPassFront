@@ -11,11 +11,25 @@ export const PasswordProvider = ({ children }) => {
 
 
     // Fetch passwords from the API
+    // const fetchPasswords = () => {
+    //     axios.get('/passwords', config)
+    //         .then(response => {
+    //             if (Array.isArray(response.data.passwords)) {
+    //                 setPasswordItems(response.data.passwords);  // Update context state with fresh data
+    //             } else {
+    //                 console.error('Unexpected response format, expected an array:', response.data);
+    //             }
+    //         })
+    //         .catch(error => {
+    //             console.error('Error fetching passwords:', error);
+    //         });
+    // };
     const fetchPasswords = () => {
-        axios.get('password-items/', config)
+        axios.get('/passwords', config)
             .then(response => {
+                // Теперь предполагаем, что data содержит объект с ключом passwords
                 if (Array.isArray(response.data.passwords)) {
-                    setPasswordItems(response.data.passwords);  // Update context state with fresh data
+                    setPasswordItems(response.data.passwords);  // Обновляем состояние
                 } else {
                     console.error('Unexpected response format, expected an array:', response.data);
                 }
@@ -24,6 +38,7 @@ export const PasswordProvider = ({ children }) => {
                 console.error('Error fetching passwords:', error);
             });
     };
+
 
     const addPassword = (newPassword) => {
         setPasswordItems(prevItems => {

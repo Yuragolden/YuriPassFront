@@ -4,34 +4,32 @@ export const config = {
     headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }  // Correct usage of token for authorization
 };
 
-
 export function addPasswordItem(newItem, groupId) {
-    // Create a copy of newItem to avoid directly modifying the original object
     const payload = { ...newItem };
-
-    // Conditionally remove groupId if it's null
-    if (groupId === null) {
-        delete payload.groupId; // Omit groupId from the payload
+    for (let key in payload) {
+        console.log(key, payload[key]);
     }
 
-    const url = groupId === null || groupId === 'null'
-        ? 'password-items/'
-        : `groups/${groupId}/password-items/`;
-
-    return axios.post(url, payload, config)
+    return axios.post("/passwords/create", payload, config)  // Отправляем POST-запрос с данными
         .then(response => {
-            const createdPassId = response.data.passId; // Get the ID of the newly created password item
-            return fetchPasswordById(createdPassId, groupId); // Fetch the newly created item with decrypted password
+            console.log('Пароль успешно добавлен:', response.data);
+            const createdPassId = response.data.id;  // Получаем ID нового пароля
+            return fetchPasswordById(createdPassId);  // Получаем информацию о добавленном пароле
         })
         .catch(error => {
-            console.error('Error in adding a new password', error);
-            throw error;
+            if (error.response) {
+                console.error('Ответ от сервера:', error.response.data);
+            } else if (error.request) {
+                console.error('Запрос был отправлен, но нет ответа:', error.request);
+            } else {
+                console.error('Произошла ошибка:', error.message);
+            }
         });
 }
 
 // Helper function to fetch a password item by its ID
 export const fetchPasswordById = (passId,groupId) => {
-    return axios.get(`groups/${groupId}/password-items/${passId}/`, config)
+    return axios.get(`/passwords/${passId}`, config)
         .then(response => {
             // Return the decrypted password item
             return response.data;
@@ -45,8 +43,10 @@ export const fetchPasswordById = (passId,groupId) => {
 export const updatePasswordItem = (passId, groupId, updatedData, setData) => {
     // Adjust URL for unlisted items
     const url = (groupId === null || groupId === 'null' || groupId === 0)
-        ? `password-items/${passId}/`  // Use a different endpoint for unlisted items
-        : `groups/${groupId}/password-items/${passId}/`;
+        // ? `password-items/${passId}/`  // Use a different endpoint for unlisted items
+        ? `/passwords/${passId}`  // Use a different endpoint for unlisted items
+        // : `groups/${groupId}/password-items/${passId}/`;
+        : `/passwords/${passId}`;
 
     // Remove the groupId from the data if it's for unlisted items
     const dataToSend = { ...updatedData };
@@ -61,7 +61,7 @@ export const updatePasswordItem = (passId, groupId, updatedData, setData) => {
             if (response.data && typeof response.data === 'object') {
                 const updatedPasswordItem = {
                     passId: response.data.passId,
-                    itemName: response.data.itemName,
+                    name: response.data.itemName,
                     userName: response.data.userName,
                     password: response.data.password,
                     groupId: response.data.groupId,
@@ -158,20 +158,19 @@ export function deleteData(passId, groupId, setData, onSuccess, setGroupItems) {
 }
 
 
-
-
 export function fetchAllPasswordItems(setData) {
-    axios.get('password-items/', config) // Adjust the endpoint if needed
+    axios.get('/passwords', config) // Adjust the endpoint if needed
         .then(response => {
+            console.log(response.data);
             // Check if response.data is an array
-            if (Array.isArray(response.data.passwords)) {
-                const mappedData = response.data.passwords.map(item => ({
-                    passId: item.passId,
-                    itemName: item.itemName,
-                    userName: item.userName,
+            if (Array.isArray(response.data)) {
+                const mappedData = response.data.map(item => ({
+                    passId: item.id,
+                    itemName: item.name,
+                    userName: item.login,
                     password: item.password,
-                    groupId: item.groupId,  // Assuming the groupId is part of the response
-                    userId: item.userId,
+                    groupId: item.folder_id,  // Assuming the groupId is part of the response
+                    userId: item.user_id,
                     comment: item.comment,
                     url: item.url,
                 }));

@@ -67,8 +67,6 @@ const App = () => {
     const [showAuthModal, setShowAuthModal] = useState(false); // Add state for auth modal
 
 
-
-
     // Update login status when location changes (e.g., after login/logout)
     useEffect(() => {
         const token = localStorage.getItem('token');
@@ -85,8 +83,6 @@ const App = () => {
             searchInputRef.current.focus();
         }
     }, [selectedGroupId,loggedIn, isLoginPage, isRegisterPage, isAboutUsPage]);
-
-
 
     const {
         token: { colorBgContainer },
@@ -114,25 +110,25 @@ const App = () => {
 
         if (token) {
             axios
-                .get('groups/', { headers: { Authorization: `Bearer ${token}` } })
+                .get('/folders', { headers: { Authorization: `Bearer ${token}` } })
                 .then((response) => {
                     if (Array.isArray(response.data)) {
 
-                        const unlistedGroup = getItem('Unlisted', 'group-X');
+                        const unlistedGroup = getItem('Все', 'group-X');
 
                         const fetchedGroups = [
                             unlistedGroup,
-                            ...response.data.map((group) => getItem(group.groupName, `group-${group.groupId}`))
+                            ...response.data.map((group) => getItem(group.name, `group-${group.id}`))
                         ];
 
                         setGroupItems(fetchedGroups);
                     } else {
-                        console.error('API response is not an array', response.data);
+                        console.error('API вернул не массив', response.data);
                         setGroupItems([]);
                     }
                 })
                 .catch((error) => {
-                    console.error('Error fetching groups:', error);
+                    console.error('Ошибка при получении папок:', error);
                     setGroupItems([]);
                 });
         }
@@ -190,7 +186,7 @@ const App = () => {
                     setSelectedGroupId(null);
                     setBreadcrumbItems([
                         {title: 'Group'},
-                        {title: 'Unlisted'},
+                        {title: 'Все'},
                     ]);
                     fetchDataForUnlistedGroups();
                 } else {
@@ -204,8 +200,6 @@ const App = () => {
                             {title: groupName},
                         ]);
                     }
-
-
                 }
             }
         }
@@ -213,9 +207,10 @@ const App = () => {
 
     const fetchDataForAllGroups = () => {
         axios
-            .get('password-items/', config)
+            .get('/folders', config)
             .then((response) => {
-                setPasswordItems(response.data.passwords);
+                console.log(response.data);
+                setPasswordItems(response.data);
             })
             .catch((error) => {
                 console.error('Error fetching all password items:', error);
@@ -316,9 +311,6 @@ const handleLogout = () => {
         fetchData();  // Fetch normal group data when the search bar loses focus
     };
 
-
-
-
 const handleCancelLogout = () => {
     setShowLogoutConfirm(false); // Close the confirmation modal without logging out
     setSelectedKey('2');
@@ -348,7 +340,7 @@ const handleCancelLogout = () => {
                         />
                     ) : (
                         <img
-                            src="https://i.imgur.com/5rgYyOW.png"
+                            src="https://icon-library.com/images/password-icon-png/password-icon-png-28.jpg"
                             alt="Collapsed Logo"
                             style={{width: '100%', maxHeight: '60px', objectFit: 'contain'}}
                         />
@@ -379,7 +371,8 @@ const handleCancelLogout = () => {
                         <Route path="/" element={<Navigate to="/about"/>}/>
 
                         <Route path="/passwords" element={
-
+                            <PrivateRoute>
+                                {/*<Breadcrumb style={{ margin: '16px 0' }} items={breadcrumbItems} />*/}
                                 <MainPage
                                     groupId={selectedGroupId}
                                     userId={userId}
@@ -387,9 +380,11 @@ const handleCancelLogout = () => {
                                     passwordItems={passwordItems} // Pass down the password items
                                     setPasswordItems={setPasswordItems}
                                     breadcrumbItems={breadcrumbItems}  // Pass breadcrumb items as props
-                                />
-                        }
 
+                                />
+                            </PrivateRoute>
+                        }
+                               // exact
                         />
                     </Routes>
 

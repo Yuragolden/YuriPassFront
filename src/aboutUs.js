@@ -40,51 +40,49 @@ const AboutUs = () => {
                 </Parallax>
             </div>
 
-            <section className="features-section" id="features">
-                <Parallax className="features-background" y={[10, -10]} >
-                    <h2 className="section-title">Features That Set Us Apart</h2>
-                    <div className="features-container">
-                        <div className="feature-card">
-                            <img src="https://cdn-icons-png.flaticon.com/512/3470/3470474.png" alt="Advanced Encryption" className="feature-image" />
-                            <h3>Advanced Encryption</h3>
-                            <p>We use military-grade encryption to ensure your data remains private and secure.</p>
-                        </div>
-                        <div className="feature-card">
-                            <img src="https://cdn-icons-png.flaticon.com/512/1144/1144760.png" alt="User-Friendly Interface" className="feature-image" />
-                            <h3>User-Friendly Interface</h3>
-                            <p>Our intuitive design makes managing and accessing your passwords simple and efficient.</p>
-                        </div>
-                        <div className="feature-card">
-                            <img src="https://static.thenounproject.com/png/3635299-200.png" alt="Seamless Integration" className="feature-image" />
-                            <h3>Seamless Integration</h3>
-                            <p>LockR integrates with all your devices and browsers for a consistent experience.</p>
-                        </div>
-                    </div>
-                </Parallax>
-            </section>
+            {/*<section className="features-section" id="features">*/}
+            {/*    <Parallax className="features-background" y={[10, -10]} >*/}
+            {/*        <h2 className="section-title">Features That Set Us Apart</h2>*/}
+            {/*        <div className="features-container">*/}
+            {/*            <div className="feature-card">*/}
+            {/*                <img src="https://cdn-icons-png.flaticon.com/512/3470/3470474.png" alt="Advanced Encryption" className="feature-image" />*/}
+            {/*                <h3>Advanced Encryption</h3>*/}
+            {/*                <p>We use military-grade encryption to ensure your data remains private and secure.</p>*/}
+            {/*            </div>*/}
+            {/*            <div className="feature-card">*/}
+            {/*                <img src="https://cdn-icons-png.flaticon.com/512/1144/1144760.png" alt="User-Friendly Interface" className="feature-image" />*/}
+            {/*                <h3>User-Friendly Interface</h3>*/}
+            {/*                <p>Our intuitive design makes managing and accessing your passwords simple and efficient.</p>*/}
+            {/*            </div>*/}
+            {/*            <div className="feature-card">*/}
+            {/*                <img src="https://static.thenounproject.com/png/3635299-200.png" alt="Seamless Integration" className="feature-image" />*/}
+            {/*                <h3>Seamless Integration</h3>*/}
+            {/*                <p>LockR integrates with all your devices and browsers for a consistent experience.</p>*/}
+            {/*            </div>*/}
+            {/*        </div>*/}
+            {/*    </Parallax>*/}
+            {/*</section>*/}
 
-            <section className="community" id="contact">
-                <Parallax className="community-background" y={[5, -5]} >
-                    <h2>Join the LockR Community</h2>
-                    <p>Connect with other users, stay updated with our latest news, and engage with our vibrant community through social media.</p>
-                </Parallax>
-            </section>
+            {/*<section className="community" id="contact">*/}
+            {/*    <Parallax className="community-background" y={[5, -5]} >*/}
+            {/*        <h2>Join the LockR Community</h2>*/}
+            {/*        <p>Connect with other users, stay updated with our latest news, and engage with our vibrant community through social media.</p>*/}
+            {/*    </Parallax>*/}
+            {/*</section>*/}
 
             <footer className="footer">
                 <div className="footer-content">
                     <div className="footer-logo"><img
-                        src="https://i.imgur.com/WR8JhwQ.png"
+                        src="https://icon-library.com/images/password-icon-png/password-icon-png-28.jpg"
                         alt="Expanded Logo"
                         style={{width: '100%', maxHeight: '60px', objectFit: 'contain',}}
                     /></div>
                     <div className="footer-social">
-                        <a href="#" className="social-icon"><img src="https://img.icons8.com/ios/50/000000/facebook.png"
-                                                                 alt="Facebook"/></a>
-                        <a href="#" className="social-icon"><img src="https://img.icons8.com/ios/50/000000/telegram.png"
+                        <a href="https://t.me/yura_golden" className="social-icon"><img src="https://img.icons8.com/ios/50/000000/telegram.png"
                                                                  alt="Telegram"/></a>
-                        <a href="#" className="social-icon"><img src="https://img.icons8.com/ios/50/000000/linkedin.png"
-                                                                 alt="LinkedIn"/></a>
-                        <a href="#" className="social-icon"><img
+                        <a href="https://github.com/Yuragolden" className="social-icon"><img src="https://img.icons8.com/ios/50/000000/github.png"
+                                                                 alt="Viber"/></a>
+                        <a href="https://www.instagram.com/yura_golden_" className="social-icon"><img
                             src="https://img.icons8.com/ios/50/000000/instagram.png" alt="Instagram"/></a>
                     </div>
                     <p className="footer-text">&copy; 2024 YuriPass. All rights reserved.</p>

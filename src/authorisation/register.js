@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import axios from '../axiosConfg';
 import { message } from 'antd';
 import { EyeInvisibleOutlined, EyeOutlined } from '@ant-design/icons'; // Import icons
+import { registerUser } from '../api';
 
 import './login.css';
 
@@ -30,18 +31,10 @@ const Register = ({ onLogout }) => {
 
         try {
             // Registration request
-            const response = await axios.post('/register', {
-                username,
-                email,
-                password,
-                password2: confirmPassword // Include password2 in the request
-            }, {
-                onUnauthorized: () => navigate('/login') // Handle unauthorized errors (401)
-            });
-
-            localStorage.setItem('token', response.data.access); // Store access token
+            const response = await registerUser({ username, email, password });
             message.success('Успешная регистрация! Перенаправляем на вход...');
             navigate('/login'); // Redirect to the login page
+
         } catch (error) {
             if (error.response) {
                 console.log('Response error:', error.response.data);

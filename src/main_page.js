@@ -180,7 +180,7 @@ const MainPage = ({ groupId, userId, setGroupItems, passwordItems, setPasswordIt
             endpoint = '/groups/null/password-items/?page=' + page;
         } else {
             // Case 3: Fetch passwords for a specific group
-            endpoint = `/groups/${groupId}/password-items/?page=` + page;
+            endpoint = `/groups/${groupId}` + page;
         }
 
         // Ensure the endpoint starts with the full base URL
@@ -193,9 +193,9 @@ const MainPage = ({ groupId, userId, setGroupItems, passwordItems, setPasswordIt
         axios.get(endpoint)
             .then((response) => {
                 const data = response.data;
-                setPasswordItems(data.passwords);  // Set the table data
-                setNextPage(data.next_page);       // Set the next page URL
-                setPrevPage(data.previous_page);   // Set the previous page URL
+                setPasswordItems(data);  // Set the table data
+                // setNextPage(data.next_page);       // Set the next page URL
+                // setPrevPage(data.previous_page);   // Set the previous page URL
                 setCurrentPage(page);
                 setSearchMode(false);  // Not in search mode
             })
@@ -506,7 +506,6 @@ const MainPage = ({ groupId, userId, setGroupItems, passwordItems, setPasswordIt
             />
             {/* Switch on the right side */}
             <div className="right-section">
-                <Button> Create new password</Button>
                 <Switch checked={isDarkMode} onChange={toggleDarkMode}/>
             </div>
 

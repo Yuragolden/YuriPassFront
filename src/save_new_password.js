@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { PlusOutlined, UserOutlined, EyeInvisibleOutlined, EyeTwoTone, RollbackOutlined , ShareAltOutlined } from '@ant-design/icons';
 import { Button, Tooltip, Modal, Input, Select, message, Switch } from 'antd';
-import { addPasswordItem } from './crud_operation';
 import axios from './axiosConfg';
 import { usePasswordContext } from './PasswordContext';
+import {addPasswordItem} from "./crud_operation";
 import './styles.css';
 import './save_new_password.css'
 
@@ -26,22 +26,37 @@ const SaveNewPassword = ({ userId, onPasswordAdd }) => {
     const [isSharingEnabled, setIsSharingEnabled] = useState(true);
     const [sharedGroups, setSharedGroups] = useState([]);
 
+    const token = localStorage.getItem('token');
     useEffect(() => {
         const fetchGroups = async () => {
             try {
-                const response = await axios.get('groups/');
+                const token = localStorage.getItem('token');
+                console.log("v nachale" + token)
+                const response = await axios.get('/folders', {
+                    headers: { Authorization: `Bearer ${token}` } // Убедитесь, что токен добавлен в заголовок
+                });
+                if(!response.data) {
+                    console.log("dura ne rabotaent")
+                }
+
+                // Добавляем папку "Unlisted" в начало списка
                 const groupsWithUnlisted = [
-                    { groupId: 'null', groupName: 'Unlisted' },
-                    ...response.data,
+                    { groupId: 'null', groupName: '' }, // Можно добавить "Unlisted"
+                    ...response.data.map(group => ({
+                        groupId: group.id,    // Используем поле id из ответа
+                        groupName: group.name // Используем поле name из ответа
+                    })),
                 ];
-                setGroupOptions(groupsWithUnlisted);
+
+                setGroupOptions(groupsWithUnlisted); // Устанавливаем полученные группы в состояние
             } catch (error) {
                 console.error('Error fetching groups:', error);
             }
         };
 
         fetchGroups();
-    }, []);
+    },[token]);  // Вызываем, когда меняется токен
+
 
     const showModal = () => {
         setFieldName('');
@@ -64,73 +79,69 @@ const SaveNewPassword = ({ userId, onPasswordAdd }) => {
         message.error("Please select a group or enter a new group name.");
         return;
     }
+       console.log(selectedGroup);
 
     if (urlField && !isValidUrl(urlField)) {
         setUrlError('Invalid URL');
         return;
     }
+       console.log(urlField);
+
 
     setLoading(true); // Set loading state to true
 
     // If a new group name is entered, create the group first
     if (newGroupName.trim() !== '') {
+        console.log(newGroupName);
         createNewGroup(newGroupName).then((newGroupId) => {
+            console.log("создание папки")
+
             savePassword(newGroupId); // Use the new groupId to save the password
+            console.log("создание папки 2")
+
         }).catch((error) => {
-            console.error('Error creating group:', error);
-            message.error('Failed to create new group');
-            setLoading(false); // Reset loading in case of error
+            console.error('Ошибка при создании папки:', error);
+            message.error('Невозмножно создать папку');
+            setLoading(false);
         });
     } else {
         const groupIdToUse = selectedGroup === 'null' ? null : selectedGroup;
+        console.log(groupIdToUse)
         savePassword(groupIdToUse); // Save password with selected group
     }
+    setLoading(false);
+
 };
-
-// Function to create a new group and update the dropdown list automatically
-const createNewGroup = async (groupName) => {
-    try {
-        const response = await axios.post('groups/', { groupName });
-        const newGroup = {
-            groupId: response.data.groupId, // Assuming API returns the new group's ID
-            groupName: groupName,
-        };
-
-        // Update the group options with the new group and select it automatically
-        setGroupOptions((prevOptions) => [...prevOptions, newGroup]);
-        setSelectedGroup(newGroup.groupId); // Automatically select the new group
-        message.success('New group created successfully');
-
-        return newGroup.groupId; // Return the new group's ID
-    } catch (error) {
-        throw new Error('Error creating group');
-    }
-};
-
 
     const savePassword = (groupIdToUse) => {
+        if (!fieldName || !username || !password) {
+            message.error('Пожалуйста, заполните все обязательные поля');
+            return;
+        }
+
         const newPasswordItem = {
-            itemName: fieldName,
-            userName: username,
+            name: fieldName,          // Убедитесь, что все эти поля содержат корректные значения
+            login: username,
             password: password,
-            groupId: groupIdToUse,
-            userId: userId,
-            comment: comments || null,
-            url: urlField || null,
+            folder_id: groupIdToUse,
+            user_id: userId,
+            comment: comments || null,    // Можно передавать null, если комментарий пустой
+            url: urlField || null,        // Можно передавать null, если URL пустой
         };
 
         addPasswordItem(newPasswordItem, groupIdToUse)
             .then((newItem) => {
-                message.success('New password added successfully');
+                message.success('Новая запись успешно создана');
+                console.log("a tit")
                 onPasswordAdd(newItem);
                 setOpen(false);
             })
             .catch((error) => {
-                console.error('Error adding password: ', error);
-                message.error('Failed to add password');
+                console.error('Ошибка при добавлении записи: ', error);
+                message.error('Невозможно добавить запись');
             })
             .finally(() => {
-                setLoading(false); // Reset loading state after completion
+                setLoading(false);
             });
     };
 
@@ -229,6 +240,31 @@ const createNewGroup = async (groupName) => {
         }
     };
 
+    async function createNewGroup(groupName) {
+        try {
+            const response = await fetch('/folders', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ name: groupName }),
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text(); // Получаем текст ошибки
+                console.error('Error response:', errorText); // Логируем ответ
+                throw new Error('Не удалось создать группу');
+            }
+
+            const newGroup = await response.json();
+            return newGroup.id;
+        } catch (error) {
+            console.error(error);
+            alert('Ошибка при создании группы');
+            return null;
+        }
+    }
+
     return (
         <>
             <Tooltip title="Add new password">
@@ -250,16 +286,16 @@ const createNewGroup = async (groupName) => {
                 className="modal-common"
                 okButtonProps={{loading}} // Add loading to the OK button
             >
-                <p>Enter the new password details here...</p>
+                <p>Введите данные для нового пароля...</p>
 
                 <Input
-                    placeholder="Field name"
+                    placeholder="Название"
                     value={fieldName}
                     onChange={(e) => setFieldName(e.target.value)}
                     style={{marginBottom: '10px'}}
                 />
                 <Input
-                    placeholder="User-name"
+                    placeholder="Имя пользователя"
                     prefix={<UserOutlined/>}
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
@@ -279,7 +315,7 @@ const createNewGroup = async (groupName) => {
                 </div>
 
                 <Input.Password
-                    placeholder="Input password"
+                    placeholder="Введите пароль"
                     value={password}
                     onChange={handlePasswordChange}
                     iconRender={(visible) => (visible ? <EyeTwoTone/> : <EyeInvisibleOutlined/>)}
@@ -287,7 +323,7 @@ const createNewGroup = async (groupName) => {
                 />
                 <Button type="primary" style={{width: '45%', marginBottom: '10px', marginLeft: '5%'}}
                         onClick={generatePassword}>
-                    Generate password
+                    Сгенерировать пароль
                 </Button>
 
             <div className={'shared-group'}>
@@ -295,22 +331,22 @@ const createNewGroup = async (groupName) => {
 
                     <Select
                         style={{ width: '100%', marginBottom: '10px' }}
-                        placeholder="Select a group"
-                        value={selectedGroup || undefined}
+                        placeholder="Выбрать папку"
+                        value={selectedGroup || undefined} // selectedGroup — это выбранный элемент
                         onChange={(value) => {
-                            setSelectedGroup(value);
-                            setIsSharingEnabled(sharedGroups.includes(value));
+                            setSelectedGroup(value);  // Устанавливаем выбранную группу
+                            setIsSharingEnabled(sharedGroups.includes(value));  // Если это общая группа
                         }}
                         allowClear
                         showSearch
-                        notFoundContent="No groups found"
+                        notFoundContent="Папки не найдены"
                         filterOption={(input, option) =>
                             option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
                         }
                     >
                         {groupOptions.map((group) => (
                             <Option key={group.groupId} value={group.groupId}>
-                                {group.groupName}
+                                {group.groupName} {/* Отображаем название группы */}
                                 {sharedGroups.includes(group.groupId) && (
                                     <ShareAltOutlined style={{ marginLeft: '10px', color: '#1677ff' }} />
                                 )}
@@ -318,11 +354,10 @@ const createNewGroup = async (groupName) => {
                         ))}
                     </Select>
 
-
                     {
 
                 <Input
-                    placeholder="Or enter new group name"
+                    placeholder="Имя для новой папки"
                     value={newGroupName}
                     onChange={(e) => setNewGroupName(e.target.value)}
 
@@ -371,7 +406,7 @@ const createNewGroup = async (groupName) => {
 
                     </div>
                     <Input
-                        placeholder="Enter email or username"
+                        placeholder="Введите email"
                         style={{width: '100%', height:'31px'}}
                         disabled={!isSharingEnabled}
                     />
@@ -380,14 +415,14 @@ const createNewGroup = async (groupName) => {
 
             </div>
                 <Input
-                    placeholder="Comments (optional)"
+                    placeholder="Комментарии (опционально)"
                     value={comments}
                     onChange={(e) => setComments(e.target.value)}
 
                 />
 
                 <Input
-                    placeholder="URL (optional)"
+                    placeholder="URL (опционально)"
                     value={urlField}
                     onChange={handleUrlChange}
 
