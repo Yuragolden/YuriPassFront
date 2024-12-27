@@ -14,7 +14,7 @@ import axios from './axiosConfg';
 import './styles.css';
 import './dark-mode.css'
 
-import { usePasswordContext } from './PasswordContext';  // Import the context
+import { usePasswordContext } from './PasswordContext';
 
 const { Search } = Input;
 
@@ -24,6 +24,7 @@ const { Text } = Typography;
 const onChange = (checked) => {
     console.log(`switch to ${checked}`); // Logs the state of the switch
 };
+
 
 const MainPage = ({ groupId, userId, setGroupItems, passwordItems, setPasswordItems,breadcrumbItems  }) => {
     const [data, setData] = useState([]);
@@ -37,7 +38,6 @@ const MainPage = ({ groupId, userId, setGroupItems, passwordItems, setPasswordIt
     const [editedComment, setEditedComment] = useState('');
     const [editedUrl, setEditedUrl] = useState(''); // Added for URL field
 
-    const { currentPage, setCurrentPage } = usePasswordContext();
     const [originalItemName, setOriginalItemName] = useState('');
     const [originalUserName, setOriginalUserName] = useState('');
     const [originalPassword, setOriginalPassword] = useState('');
@@ -47,56 +47,12 @@ const MainPage = ({ groupId, userId, setGroupItems, passwordItems, setPasswordIt
 
     const [isSaveButtonDisabled, setIsSaveButtonDisabled] = useState(true);
     const [isPasswordVisible, setIsPasswordVisible] = useState(false);
-    const [nextPage, setNextPage] = useState(null);
-    const [prevPage, setPrevPage] = useState(null);
+
     const [loading, setLoading] = useState(false);
     const [searchMode, setSearchMode] = useState(false); // To track if we are in search mode
 
-    // Pagination state for search results
-    const [currentPageSearch, setCurrentPageSearch] = useState(1);
-    const [nextPageSearch, setNextPageSearch] = useState(null);
-    const [prevPageSearch, setPrevPageSearch] = useState(null);
+    const [historyLoading, setHistoryLoading] = useState(false);
 
-    // Pagination state for the history table
-    const [historyCurrentPage, setHistoryCurrentPage] = useState(1);
-    const [historyNextPage, setHistoryNextPage] = useState(null);
-    const [historyPrevPage, setHistoryPrevPage] = useState(null);
-    const [historyLoading, setHistoryLoading] = useState(false);  // History loading state
-
-    // OTP related
-    const [secretKey, setSecretKey] = useState('');
-    const [otp, setOtp] = useState('000000');
-    const pollingRef = useRef(null); // To manage the polling interval
-    const [initialRequestFailed, setInitialRequestFailed] = useState(false); // Track initial request failure
-
-    // Start polling the OTP endpoint when the modal opens
-    useEffect(() => {
-        if (isModalOpen) {
-            fetchOtp(); // Try fetching OTP immediately
-            if (!initialRequestFailed) {
-                pollingRef.current = setInterval(fetchOtp, 5000); // Start polling only if the initial request is successful
-            }
-        } else {
-            clearInterval(pollingRef.current); // Stop polling when modal closes
-        }
-
-        return () => clearInterval(pollingRef.current); // Cleanup on unmount or modal closure
-    }, [isModalOpen, initialRequestFailed]);
-
-    // Save secret key
-    const handleSaveKey = async () => {
-        try {
-            const response = await axios.post(`/password-items-otp/${clickedRow.passId}/update-otp/`, {
-                otpKey: secretKey,
-            });
-            message.success(response.data.responseKey);
-            setInitialRequestFailed(false); // Reset failure state
-            fetchOtp(); // Fetch OTP immediately
-            pollingRef.current = setInterval(fetchOtp, 5000); // Restart polling
-        } catch (error) {
-            message.error('Failed to save the OTP key');
-        }
-    };
     const [isDarkMode, setIsDarkMode] = useState(false);
 
 
@@ -123,81 +79,15 @@ const MainPage = ({ groupId, userId, setGroupItems, passwordItems, setPasswordIt
         }
     }, []);
 
-
-    // Delete secret key
-    const handleDeleteKey = async () => {
-        try {
-            await axios.delete(`/password-items-otp/${clickedRow.passId}/delete-otp/`);
-            setSecretKey('');
-            message.success('OTP key deleted successfully');
-        } catch (error) {
-            message.error('Failed to delete the OTP key');
-        }
-    };
-
-    // Function to fetch OTP from the endpoint
-    const fetchOtp = async () => {
-        try {
-            const response = await axios.get(`/password-items-otp/${clickedRow.passId}/generate-otp/`);
-            const responseKey = response.data.responseKey;
-
-            if (responseKey === "No OTP key found for this item") {
-                setOtp('000000'); // Fallback OTP
-                setInitialRequestFailed(false); // No error in this case
-            } else {
-                setOtp(responseKey.toString().padStart(6, '0')); // Format OTP as 6 digits
-                setInitialRequestFailed(false); // Mark as successful
-            }
-        } catch (error) {
-            setInitialRequestFailed(true); // Mark failure
-            setOtp('000000'); // Fallback in case of an error
-
-            clearInterval(pollingRef.current); // Stop polling if the request fails
-        }
-    };
-
-
-    // Copy OTP to clipboard
-    const handleCopyOtp = () => {
-        navigator.clipboard.writeText(otp);
-        message.success('OTP copied to clipboard');
-    };
-
     // Function to fetch data based on the group
-    const fetchData = (url = null, page = 1) => {
+    const fetchData = async () => {
         setLoading(true);
+        const userId = localStorage.getItem("userId");
 
-        // Determine the appropriate endpoint based on the groupId
-        let endpoint;
-        if (url) {
-            // If a URL is provided, use it for pagination (next/previous page)
-            endpoint = url;
-        } else if (groupId === -1) {
-            // Case 1: Fetch all passwords (default "Passwords" option)
-            endpoint = '/password-items/?page=' + page;
-        } else if (groupId === null) {
-            // Case 2: Fetch unlisted passwords (groupId is 'null')
-            endpoint = '/groups/null/password-items/?page=' + page;
-        } else {
-            // Case 3: Fetch passwords for a specific group
-            endpoint = `/groups/${groupId}` + page;
-        }
-
-        // Ensure the endpoint starts with the full base URL
-        if (!endpoint.startsWith('http')) {
-            endpoint = `${process.env.REACT_APP_API_BASE_URL}${endpoint}`;
-        }
-
-
-        // Use Axios to fetch the data from the determined endpoint
-        axios.get(endpoint)
+        axios.get(`/passwords/user/${userId}`)
             .then((response) => {
                 const data = response.data;
                 setPasswordItems(data);  // Set the table data
-                // setNextPage(data.next_page);       // Set the next page URL
-                // setPrevPage(data.previous_page);   // Set the previous page URL
-                setCurrentPage(page);
-                setSearchMode(false);  // Not in search mode
             })
             .catch((error) => {
                 console.error('Error fetching data:', error);
@@ -205,46 +95,36 @@ const MainPage = ({ groupId, userId, setGroupItems, passwordItems, setPasswordIt
             .finally(() => {
                 setLoading(false);
             });
+
     };
 
     // Fetch data when the component mounts or the groupId changes
     useEffect(() => {
         fetchData();
-    }, [groupId]);
+    }, []);
 
     const onSearch = (value) => {
         const trimmedQuery = value.trim();
-        setSearchMode(Boolean(trimmedQuery)); // Enter search mode only if a query is provided
+        setSearchMode(Boolean(trimmedQuery));
 
         if (!trimmedQuery) {
-            fetchData(null, currentPage);  // Clear the search and go back to normal data
+            fetchData();  // Просто загружайте все пароли снова
             return;
         }
 
-        // Reset search pagination
-        setCurrentPageSearch(1);
-
-        let endpoint;
-        if (groupId === -1) {
-            endpoint = `password-items/?page=1&search=${encodeURIComponent(trimmedQuery)}`;
-        } else if (groupId === null) {
-            endpoint = `groups/null/password-items/?page=1&search=${encodeURIComponent(trimmedQuery)}`;
-        } else {
-            endpoint = `groups/${groupId}/password-items/?page=1&search=${encodeURIComponent(trimmedQuery)}`;
-        }
+        // Здесь можно оставить логику поиска без изменения, если у вас есть отдельный эндпоинт для поиска
+        const endpoint = `passwords/search/?query=${encodeURIComponent(trimmedQuery)}`;
 
         axios.get(endpoint)
             .then((response) => {
                 const data = response.data;
-                setPasswordItems(data.passwords);
-                setNextPageSearch(data.next_page);
-                setPrevPageSearch(data.previous_page);
+                setPasswordItems(data);
+                // Обновите состояние для пагинации, если используете
             })
             .catch((error) => {
                 console.error('Error during search:', error);
             });
     };
-
 
     // Change page in search results
     const fetchSearchResults = (url, page) => {
@@ -286,7 +166,7 @@ const MainPage = ({ groupId, userId, setGroupItems, passwordItems, setPasswordIt
         axios.get(endpoint)
             .then((response) => {
                 const data = response.data;
-                setHistoryData(data.passwords);  // Set history data
+                setHistoryData(data);  // Set history data
                 setHistoryNextPage(data.next_page);  // Set next page
                 setHistoryPrevPage(data.previous_page);  // Set previous page
                 setHistoryCurrentPage(page);  // Update current history page
@@ -409,13 +289,13 @@ const MainPage = ({ groupId, userId, setGroupItems, passwordItems, setPasswordIt
 
      const columns = [
         {
-            title: 'Name',
+            title: 'Название',
             dataIndex: 'itemName',
             key: 'itemName',
         },
 
         {
-            title: 'User Name',
+            title: 'Логин',
             dataIndex: 'userName',
             key: 'userName',
         },
@@ -423,13 +303,13 @@ const MainPage = ({ groupId, userId, setGroupItems, passwordItems, setPasswordIt
         {
             title: (
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span>Password</span>
+                    <span>Пароль</span>
                     <Button
                         type="link"  // Low-key, link-styled button
                         onClick={toggleAllPasswordsVisibility}
                         style={{ fontSize: '14px', color: '#4b6584' }}  // Adjust style to blend in
                     >
-                        {isPasswordVisible ? 'Hide All' : 'Show All'}
+                        {isPasswordVisible ? 'Скрыть все' : 'Показать все'}
                     </Button>
                 </div>
             ),
@@ -443,6 +323,8 @@ const MainPage = ({ groupId, userId, setGroupItems, passwordItems, setPasswordIt
                         <span
                             style={{ marginLeft: 8, cursor: 'pointer' }}
                             onClick={() => {
+                                console.log("yuraloh")
+                                console.log(record)
                                 record.isPasswordVisible = !record.isPasswordVisible;
                                 setPasswordItems([...passwordItems]);  // Update the table with visibility toggled
                             }}
@@ -497,7 +379,7 @@ const MainPage = ({ groupId, userId, setGroupItems, passwordItems, setPasswordIt
     return (
         <div>
             <Search
-                placeholder="What are you looking for?"
+                placeholder="Что будем искать?"
                 onSearch={onSearch}
                 className="custom-search-bar"
                 //onBlur={onSearchBlur}
@@ -512,51 +394,16 @@ const MainPage = ({ groupId, userId, setGroupItems, passwordItems, setPasswordIt
             <Breadcrumb style={{margin: '16px 0'}} items={breadcrumbItems}>
 
             </Breadcrumb>
-
             <Table
                 dataSource={passwordItems}
                 columns={columns}
-                rowKey={(record) => record.passId}
+                rowKey={(record) => record.id}
                 loading={loading}
                 pagination={false}
-
             />
-            <div style={{display: 'flex', justifyContent: 'center', marginTop: 16}}>
-                <Button
-                    onClick={() => searchMode ? fetchSearchResults(prevPageSearch, currentPageSearch - 1) : fetchData(prevPage, currentPage - 1)}
-                    disabled={searchMode ? !prevPageSearch : !prevPage}  // Fix: !prevPage (instead of searchMode ? !prevPageSearch : prevPage)
-                    style={{marginRight: 8}}
-                >
-                    <LeftOutlined /> {/* Icon for Previous Page */}
-                </Button>
 
-                <div style={{
-                    width: '40px',
-                    height: '40px',
-                    lineHeight: '40px',
-                    textAlign: 'center',
-                    border: '1px solid #2F72EDFF',
-                    borderRadius: '4px',
-                    margin: '0 12px',
-                    fontSize: '16px',
-                    background: 'white',
-
-                }}>
-                    {searchMode ? currentPageSearch : currentPage} {/* Show currentPageSearch in search mode */}
-                </div>
-
-                <Button
-
-                    onClick={() => searchMode ? fetchSearchResults(nextPageSearch, currentPageSearch + 1) : fetchData(nextPage, currentPage + 1)}
-                    disabled={searchMode ? !nextPageSearch : !nextPage}  // Fix: !nextPage (instead of searchMode ? !prevPageSearch : prevPage)
-                    style={{marginLeft: 8,}}
-                >
-                    <RightOutlined/> {/* Icon for Next Page */}
-                </Button>
-
-            </div>
             <Modal
-                title="Password Item Details"
+                title="Детали записи"
                 open={isModalOpen}
                 onCancel={handleModalClose}
                 footer={null}
@@ -568,8 +415,8 @@ const MainPage = ({ groupId, userId, setGroupItems, passwordItems, setPasswordIt
                     <TabPane tab="Details" key="1">
                         {clickedRow && (
                             <div>
-                                <p><strong>Name:</strong> {clickedRow.itemName}</p>
-                                <p><strong>User Name:</strong> {clickedRow.userName}</p>
+                                <p><strong>Название:</strong> {clickedRow.itemName}</p>
+                                <p><strong>Логин:</strong> {clickedRow.userName}</p>
                                 <p>
                                     <strong style={{marginRight: '10px'}}>Password:</strong>
                                     {isPasswordVisible ? clickedRow.password : '*'.repeat(clickedRow.password.length)}
@@ -580,11 +427,11 @@ const MainPage = ({ groupId, userId, setGroupItems, passwordItems, setPasswordIt
                                     />
                                 </p>
                                 <p>
-                                    <strong>Group:</strong> {clickedRow.groupName ? clickedRow.groupName : 'Unlisted'}
+                                    <strong>Папка:</strong> {clickedRow.groupName ? clickedRow.groupName : 'Unlisted'}
                                 </p>
                                 {clickedRow.comment && (
                                     <p>
-                                        <strong>Comment:</strong> {clickedRow.comment}
+                                        <strong>Комментарии:</strong> {clickedRow.comment}
                                     </p>
                                 )}
                                 <p>
@@ -593,7 +440,7 @@ const MainPage = ({ groupId, userId, setGroupItems, passwordItems, setPasswordIt
                                         {clickedRow.url}
                                     </a>
                                 ) : (
-                                    'No URL provided'
+                                    'Нет URL'
                                 )}
                                 </p>
                             </div>
@@ -605,7 +452,7 @@ const MainPage = ({ groupId, userId, setGroupItems, passwordItems, setPasswordIt
                                 <Table
                                     columns={history_columns}
                                     dataSource={historyData}
-                                    rowKey={(record) => record.updatedAt}
+                                    rowKey={(record) => record.updated_at}
                                     loading={historyLoading}
                                     pagination={false}
                                 />
@@ -640,16 +487,16 @@ const MainPage = ({ groupId, userId, setGroupItems, passwordItems, setPasswordIt
                                 </div>
                             </div>
                         ) : (
-                            <p>No history available.</p>
+                            <p>Нет доступной истории.</p>
                         )}
                     </TabPane>
-                    <TabPane tab="Edit" key="3">
+                    <TabPane tab="Изменить" key="3">
                         {clickedRow && (
                             <div>
                                 <div style={{marginBottom: '10px'}}>
                                     <label style={{fontWeight: 'bold'}}>Item Name</label>
                                     <Input
-                                        placeholder="Item Name"
+                                        placeholder="Название"
                                         value={editedItemName}
                                         onChange={(e) => setEditedItemName(e.target.value)}
                                     />
@@ -657,7 +504,7 @@ const MainPage = ({ groupId, userId, setGroupItems, passwordItems, setPasswordIt
                                 <div style={{marginBottom: '10px'}}>
                                     <label style={{fontWeight: 'bold'}}>User Name</label>
                                     <Input
-                                        placeholder="Username"
+                                        placeholder="Логин"
                                         value={editedUserName}
                                         onChange={(e) => setEditedUserName(e.target.value)}
                                     />
@@ -665,7 +512,7 @@ const MainPage = ({ groupId, userId, setGroupItems, passwordItems, setPasswordIt
                                 <div style={{marginBottom: '10px'}}>
                                     <label style={{fontWeight: 'bold'}}>Password</label>
                                     <Input.Password
-                                        placeholder="Password"
+                                        placeholder="Пароль"
                                         value={editedPassword}
                                         onChange={(e) => setEditedPassword(e.target.value)}
                                         iconRender={(visible) => (visible ? <EyeOutlined/> : <EyeInvisibleOutlined/>)}
@@ -674,7 +521,7 @@ const MainPage = ({ groupId, userId, setGroupItems, passwordItems, setPasswordIt
                                 <div style={{marginBottom: '10px'}}>
                                     <label style={{fontWeight: 'bold'}}>Group</label>
                                     <Input
-                                        placeholder="Group"
+                                        placeholder="Папка"
                                         value={editedGroup}
                                         onChange={(e) => setEditedGroup(e.target.value)}
                                     />
@@ -682,7 +529,7 @@ const MainPage = ({ groupId, userId, setGroupItems, passwordItems, setPasswordIt
                                 <div style={{marginBottom: '10px'}}>
                                     <label style={{fontWeight: 'bold'}}>Comment</label>
                                     <Input
-                                        placeholder="Comment"
+                                        placeholder="Комментарий"
                                         value={editedComment}
                                         onChange={(e) => setEditedComment(e.target.value)}
                                     />
@@ -703,34 +550,11 @@ const MainPage = ({ groupId, userId, setGroupItems, passwordItems, setPasswordIt
                                     Save
                                 </Button>
                                 <Button danger onClick={handleDelete} style={{marginLeft: 8}}>
-                                    Delete
+                                    Удалить
                                 </Button>
                             </div>
                         )}
                     </TabPane>
-                    <TabPane tab="OTP" key="5">
-                        <div style={{marginBottom: '16px'}}>
-                            <Input
-                                placeholder="Enter Secret Key"
-                                value={secretKey}
-                                onChange={(e) => setSecretKey(e.target.value)}
-                                style={{width: '80%', marginRight: '8px'}}
-                            />
-                            <Button type="primary" onClick={handleSaveKey} disabled={!secretKey}>
-                                Save
-                            </Button>
-                            <Button danger onClick={handleDeleteKey} style={{marginLeft: '8px'}}>
-                                Delete
-                            </Button>
-                        </div>
-                        <div style={{textAlign: 'center', marginBottom: '16px'}}>
-                            <Typography.Title level={2} onClick={handleCopyOtp} style={{cursor: 'pointer'}}>
-                                {otp || '000000'}
-                            </Typography.Title>
-                            <Typography.Text type="secondary">Click to copy OTP</Typography.Text>
-                        </div>
-                    </TabPane>
-
                 </Tabs>
             </Modal>
         </div>

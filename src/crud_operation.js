@@ -1,4 +1,6 @@
 import axios from './axiosConfg';
+import { jwtDecode } from 'jwt-decode';
+
 
 export const config = {
     headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }  // Correct usage of token for authorization
@@ -35,7 +37,7 @@ export const fetchPasswordById = (passId,groupId) => {
             return response.data;
         })
         .catch(error => {
-            console.error('Error fetching password by ID:', error);
+            console.error('Ошибка при получении пароля по ID:', error);
             throw error;
         });
 };
@@ -93,10 +95,10 @@ export const updatePasswordItem = (passId, groupId, updatedData, setData) => {
 };
 
 function deleteGroup(groupId, setGroupItems) {
-    axios.delete(`groups/${groupId}/`, config)
+    axios.delete(`folders/${groupId}/`, config)
         .then((response) => {
             if (response.status === 204) {
-                console.log(`Group ${groupId} deleted successfully`);
+                console.log(`Папка ${groupId} успешно удалена`);
 
                 // Update the sidebar to remove the deleted group
                 setGroupItems(prevGroupItems =>
@@ -157,46 +159,47 @@ export function deleteData(passId, groupId, setData, onSuccess, setGroupItems) {
         });
 }
 
+const userId = localStorage.getItem('userId');
 
 export function fetchAllPasswordItems(setData) {
-    axios.get('/passwords', config) // Adjust the endpoint if needed
+    axios.get(`/passwords/user/${userId}`, config)
         .then(response => {
-            console.log(response.data);
-            // Check if response.data is an array
-            if (Array.isArray(response.data)) {
+            if (response.data && Array.isArray(response.data)) {
                 const mappedData = response.data.map(item => ({
                     passId: item.id,
                     itemName: item.name,
                     userName: item.login,
                     password: item.password,
-                    groupId: item.folder_id,  // Assuming the groupId is part of the response
+                    groupId: item.folder_id,
                     userId: item.user_id,
                     comment: item.comment,
                     url: item.url,
+                    isPasswordVisible: false,
                 }));
                 setData(mappedData);
             } else {
-                console.error('Unexpected response format, expected an array:', response.data);
+                console.error('Неверный формат, ожидается массив:', response.data);
             }
         })
         .catch(error => {
-            console.error('Error fetching all password items:', error);
+            console.error('Ошибка при обработке записей пользователя: ', error);
         });
 }
 
 export function fetchUnlistedPasswordItems(setData) {
-    axios.get('password-items/unlisted/', config) // Adjust the endpoint if needed
+    axios.get(`/passwords/user/${userId}`, config) // Adjust the endpoint if needed
         .then(response => {
-            if (response.data && Array.isArray(response.data.passwords)) {
-                const mappedData = response.data.passwords.map(item => ({
-                    passId: item.passId,
-                    itemName: item.itemName,
-                    userName: item.userName,
+            if (response.data && Array.isArray(response.data)) {
+                const mappedData = response.data.map(item => ({
+                    passId: item.id,
+                    itemName: item.name,
+                    userName: item.login,
                     password: item.password,
-                    groupId: item.groupId,  // Assuming the groupId is part of the response
-                    userId: item.userId,
+                    groupId: item.folder_id,
+                    userId: item.user_id,
                     comment: item.comment,
                     url: item.url,
+                    isPasswordVisible: false,
                 }));
                 setData(mappedData);
             } else {
@@ -209,18 +212,20 @@ export function fetchUnlistedPasswordItems(setData) {
 }
 
 export function dataFetching(groupId, setData) {
-    axios.get(`groups/${groupId}/password-items/`, config)
+    axios.get(`/passwords/folder/${userId}/${groupId}`, config)
         .then(response => {
-            const passwordItemsWithGroupNames = response.data.passwords.map(item => ({
-                passId: item.passId,
-                itemName: item.itemName,
-                userName: item.userName,
+            console.log(response.data);
+            const passwordItemsWithGroupNames = response.data.map(item => ({
+                passId: item.id,
+                itemName: item.name,
+                userName: item.login,
                 password: item.password,
-                groupId: item.groupId,
-                groupName: item.groupName,
-                userId: item.userId,
+                groupId: item.folder_id,
+                userId: item.user_id,
                 comment: item.comment,
                 url: item.url,
+                createdAt: item.created_at,
+                updatedAt: item.updated_at,
             }));
             setData(passwordItemsWithGroupNames);
         })

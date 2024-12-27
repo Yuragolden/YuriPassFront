@@ -31,7 +31,6 @@ const SaveNewPassword = ({ userId, onPasswordAdd }) => {
         const fetchGroups = async () => {
             try {
                 const token = localStorage.getItem('token');
-                console.log("v nachale" + token)
                 const response = await axios.get('/folders', {
                     headers: { Authorization: `Bearer ${token}` } // Убедитесь, что токен добавлен в заголовок
                 });
@@ -131,7 +130,7 @@ const SaveNewPassword = ({ userId, onPasswordAdd }) => {
 
         addPasswordItem(newPasswordItem, groupIdToUse)
             .then((newItem) => {
-                message.success('Новая запись успешно создана');
+                // message.success('Новая запись успешно создана');
                 console.log("a tit")
                 onPasswordAdd(newItem);
                 setOpen(false);

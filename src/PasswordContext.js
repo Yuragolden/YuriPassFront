@@ -4,38 +4,25 @@ import { config } from './crud_operation';
 import { message } from 'antd';
 
 const PasswordContext = createContext();
+const userId = localStorage.getItem('userId');
 
 export const PasswordProvider = ({ children }) => {
     const [passwordItems, setPasswordItems] = useState([]);
     const [currentPage, setCurrentPage] = useState(1); // Add currentPage here
 
 
-    // Fetch passwords from the API
-    // const fetchPasswords = () => {
-    //     axios.get('/passwords', config)
-    //         .then(response => {
-    //             if (Array.isArray(response.data.passwords)) {
-    //                 setPasswordItems(response.data.passwords);  // Update context state with fresh data
-    //             } else {
-    //                 console.error('Unexpected response format, expected an array:', response.data);
-    //             }
-    //         })
-    //         .catch(error => {
-    //             console.error('Error fetching passwords:', error);
-    //         });
-    // };
     const fetchPasswords = () => {
         axios.get('/passwords', config)
             .then(response => {
-                // Теперь предполагаем, что data содержит объект с ключом passwords
-                if (Array.isArray(response.data.passwords)) {
-                    setPasswordItems(response.data.passwords);  // Обновляем состояние
+                console.log('Ответ от API:', response.data);
+                if (Array.isArray(response.data)) {
+                    setPasswordItems(response.data);  // Обновляем состояние
                 } else {
-                    console.error('Unexpected response format, expected an array:', response.data);
+                    console.error('Неверный формат, ожидается массив:', response.data);
                 }
             })
             .catch(error => {
-                console.error('Error fetching passwords:', error);
+                console.error('Ошибка при обработке данных:', error);
             });
     };
 

@@ -22,6 +22,7 @@ import PrivateRoute from './authorisation/PrivateRoute';
 import AboutUs from "./aboutUs";
 import { useLocation } from 'react-router-dom';
 import { PasswordProvider } from './PasswordContext';
+const userId = localStorage.getItem('userId');
 
 const { Search } = Input;
 const { Header, Content, Footer, Sider } = Layout;
@@ -44,7 +45,7 @@ const App = () => {
     const [passwordItems, setPasswordItems] = useState([]);
     const [groupItems, setGroupItems] = useState([]);
     const [selectedGroupId, setSelectedGroupId] = useState(-1);
-    const [userId, setUserId] = useState(1);
+    // const [userId, setUserId] = useState(1);
     const [comment, setCommentId] = useState(null);
     const [url, setUrlId] = useState(null);
     const [openKeys, setOpenKeys] = useState([]);
@@ -65,6 +66,7 @@ const App = () => {
     const isRegisterPage = location.pathname === '/register';
     const isAboutUsPage = location.pathname === '/about';
     const [showAuthModal, setShowAuthModal] = useState(false); // Add state for auth modal
+    const user_id = localStorage.getItem('userId');
 
 
     // Update login status when location changes (e.g., after login/logout)
@@ -82,7 +84,7 @@ const App = () => {
         if (searchInputRef.current || (loggedIn && !isLoginPage && !isRegisterPage && !isAboutUsPage && searchInputRef.current)) {
             searchInputRef.current.focus();
         }
-    }, [selectedGroupId,loggedIn, isLoginPage, isRegisterPage, isAboutUsPage]);
+    }, [selectedGroupId, loggedIn, isLoginPage, isRegisterPage, isAboutUsPage]);
 
     const {
         token: { colorBgContainer },
@@ -110,7 +112,7 @@ const App = () => {
 
         if (token) {
             axios
-                .get('/folders', { headers: { Authorization: `Bearer ${token}` } })
+                .get(`/folders/user/${userId}`, { headers: { Authorization: `Bearer ${token}` } })
                 .then((response) => {
                     if (Array.isArray(response.data)) {
 
@@ -148,6 +150,13 @@ const App = () => {
         fetchData();
     }, [selectedGroupId]);
 
+    // useEffect(() => {
+    //     if (userId) {
+    //         fetchAllPasswordItems(setPasswordItems);
+    //         console.log('Данные загружены:', passwordItems);
+    //     }
+    // }, []);
+
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (searchRef.current && !searchRef.current.contains(event.target)) {
@@ -174,8 +183,8 @@ const App = () => {
             if (key === '2') {
                 setSelectedGroupId(-1);
                 setBreadcrumbItems([
-                    {title: 'Group'},
-                    {title: 'All'},
+                    {title: 'Папки'},
+                    {title: 'Все'},
                 ]);
                 fetchDataForAllGroups();
             } else if (key.startsWith('group-')) {
@@ -185,7 +194,7 @@ const App = () => {
                 if (groupId === 'X') {
                     setSelectedGroupId(null);
                     setBreadcrumbItems([
-                        {title: 'Group'},
+                        {title: 'Папки'},
                         {title: 'Все'},
                     ]);
                     fetchDataForUnlistedGroups();
@@ -196,7 +205,7 @@ const App = () => {
                     if (clickedGroup) {
                         const groupName = clickedGroup.label;
                         setBreadcrumbItems([
-                            {title: 'Group'},
+                            {title: 'Папки'},
                             {title: groupName},
                         ]);
                     }
@@ -207,24 +216,23 @@ const App = () => {
 
     const fetchDataForAllGroups = () => {
         axios
-            .get('/folders', config)
+            .get(`/passwords/user/${user_id}`, config)
             .then((response) => {
-                console.log(response.data);
                 setPasswordItems(response.data);
             })
             .catch((error) => {
-                console.error('Error fetching all password items:', error);
+                console.error('Ошибка при получении всех записей', error);
             });
     };
 
     const fetchDataForUnlistedGroups = () => {
         axios
-            .get('password-items/unlisted/', config)
+            .get(`/passwords/user/${user_id}`, config)
             .then((response) => {
-                setPasswordItems(response.data.passwords);
+                setPasswordItems(response.data);
             })
             .catch((error) => {
-                console.error('Error fetching unlisted password items:', error);
+                console.error('Ошибка при получении всех неотсортированных записей:', error);
             });
     };
 
@@ -263,8 +271,8 @@ const App = () => {
 
 
     const [breadcrumbItems, setBreadcrumbItems] = useState([
-        { title: 'Group' },
-        { title: 'All' },
+        { title: 'Папки' },
+        { title: 'Все' },
     ]);
 
     const onMenuSelect = ({ key }) => {
@@ -299,6 +307,7 @@ const showLogoutConfirmation = () => {
 
 const handleLogout = () => {
     localStorage.removeItem('token'); // Remove the token
+    localStorage.removeItem('userId'); // Remove the token
     setLoggedIn(false); // Update the login state
     message.success('Успешный выход из аккаунта. До скорой встречи..');
     setShowLogoutConfirm(false); // Close the logout confirmation modal
@@ -360,8 +369,6 @@ const handleCancelLogout = () => {
             </Sider>
 
             <Layout>
-
-
                 <Content style={{margin: '0 16px'}}>
                     <Routes>
                         <Route path="/login" element={<Login/>}/>
@@ -375,7 +382,7 @@ const handleCancelLogout = () => {
                                 {/*<Breadcrumb style={{ margin: '16px 0' }} items={breadcrumbItems} />*/}
                                 <MainPage
                                     groupId={selectedGroupId}
-                                    userId={userId}
+                                    userId={user_id}
                                     setGroupItems={setGroupItems}
                                     passwordItems={passwordItems} // Pass down the password items
                                     setPasswordItems={setPasswordItems}
@@ -384,11 +391,8 @@ const handleCancelLogout = () => {
                                 />
                             </PrivateRoute>
                         }
-                               // exact
                         />
                     </Routes>
-
-
                 </Content>
                 <Footer style={{ textAlign: 'center' }}>© 2024 YuriPass</Footer>
             </Layout>
@@ -405,7 +409,7 @@ const handleCancelLogout = () => {
                 >
                     <SaveNewPassword
                         groupId={selectedGroupId}
-                        userId={userId}
+                        userId={user_id}
                         comment={comment}
                         url={url}
                         onPasswordAdd={(newItem) => {
@@ -417,7 +421,7 @@ const handleCancelLogout = () => {
 
             )}
             <Modal
-                title="Authentication"
+                title="Авторизация"
                 open={showAuthModal}
                 onCancel={() => setShowAuthModal(false)}
                 footer={null}
@@ -437,31 +441,31 @@ const handleCancelLogout = () => {
                 )}
             </Modal>
             <Modal
-                title="Confirm Logout"
+                title="Подтвердить выход"
                 visible={showLogoutConfirm}
                 onOk={handleLogout}
                 onCancel={handleCancelLogout}
                 okText="Yes"
                 cancelText="No"
             >
-                <p>Are you sure you want to log out?</p>
+                <p>Действительно хотите выйти?</p>
             </Modal>
             <Modal
-                title="Password Details"
+                title="Детали записи"
                 open={isModalVisible}
                 onCancel={handleCancel}
                 footer={null} // You can add footer actions if needed
             >
                 {selectedPasswordItem ? (
                     <div>
-                        <p><strong>Item Name:</strong> {selectedPasswordItem.itemName}</p>
-                        <p><strong>Username:</strong> {selectedPasswordItem.userName}</p>
-                        <p><strong>Password:</strong> {selectedPasswordItem.password}</p>
+                        <p><strong>Название:</strong> {selectedPasswordItem.name}</p>
+                        <p><strong>Логин:</strong> {selectedPasswordItem.login}</p>
+                        <p><strong>Пароль:</strong> {selectedPasswordItem.password}</p>
                         <p><strong>URL:</strong> {selectedPasswordItem.url}</p>
-                        <p><strong>Comment:</strong> {selectedPasswordItem.comment}</p>
+                        <p><strong>Комментарии:</strong> {selectedPasswordItem.comment}</p>
                     </div>
                 ) : (
-                    <p>No details available</p>
+                    <p>Нет доступных деталей</p>
                 )}
             </Modal>
 

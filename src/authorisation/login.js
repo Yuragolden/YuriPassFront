@@ -5,6 +5,7 @@ import { EyeInvisibleOutlined, EyeOutlined } from '@ant-design/icons';
 import { message } from 'antd';
 import { loginUser } from '../api';
 import './login.css';
+import { jwtDecode } from 'jwt-decode';
 
 
 const Login = () => {
@@ -21,16 +22,21 @@ const Login = () => {
         try {
             const response = await loginUser({ username, password });
             localStorage.setItem('token', response.access_token);
+
+            const decodedToken = jwtDecode(response.access_token);
+
+            const user_Id = decodedToken.userId; // Извлеките user_id
+            localStorage.setItem('userId', user_Id); // Сохраните userId в localStorage
+
+
             message.success('Успешный вход! Добро пожаловать...');
             setError('');
             navigate('/passwords'); // Redirect after login success
-
 
         } catch (err) {
             console.log('Ошибочка:', err);  // Log the entire error object
             const errorMessage = err.response?.data?.detail || 'Неизвестная мне ошибочка.';
             setError(errorMessage);  // Display the error
-            // message.error(`Login failed: ${errorMessage}`);
         }
     };
 
