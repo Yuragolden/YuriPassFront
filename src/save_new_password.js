@@ -8,6 +8,7 @@ import './styles.css';
 import './save_new_password.css'
 
 const { Option } = Select;
+// const userId = localStorage.getItem('userId');
 
 const SaveNewPassword = ({ userId, onPasswordAdd }) => {
     const [open, setOpen] = useState(false);
@@ -31,7 +32,7 @@ const SaveNewPassword = ({ userId, onPasswordAdd }) => {
         const fetchGroups = async () => {
             try {
                 const token = localStorage.getItem('token');
-                const response = await axios.get('/folders', {
+                const response = await axios.get(`/folders/user/${userId}`, {
                     headers: { Authorization: `Bearer ${token}` } // Убедитесь, что токен добавлен в заголовок
                 });
                 if(!response.data) {
@@ -40,7 +41,7 @@ const SaveNewPassword = ({ userId, onPasswordAdd }) => {
 
                 // Добавляем папку "Unlisted" в начало списка
                 const groupsWithUnlisted = [
-                    { groupId: 'null', groupName: '' }, // Можно добавить "Unlisted"
+                    { groupId: 'null', groupName: 'Без папки' }, // Можно добавить "Unlisted"
                     ...response.data.map(group => ({
                         groupId: group.id,    // Используем поле id из ответа
                         groupName: group.name // Используем поле name из ответа
@@ -71,20 +72,19 @@ const SaveNewPassword = ({ userId, onPasswordAdd }) => {
     };
 
    const handleOk = () => {
-    if (loading) return; // Prevent multiple clicks while loading
+    if (loading) return;
 
-    // Ensure at least a group is selected or a new group is being created
     if (selectedGroup === null && newGroupName.trim() === '') {
         message.error("Please select a group or enter a new group name.");
         return;
     }
-       console.log(selectedGroup);
+    console.log(selectedGroup);
 
     if (urlField && !isValidUrl(urlField)) {
         setUrlError('Invalid URL');
         return;
     }
-       console.log(urlField);
+    console.log(urlField);
 
 
     setLoading(true); // Set loading state to true
@@ -93,19 +93,16 @@ const SaveNewPassword = ({ userId, onPasswordAdd }) => {
     if (newGroupName.trim() !== '') {
         console.log(newGroupName);
         createNewGroup(newGroupName).then((newGroupId) => {
-            console.log("создание папки")
 
-            savePassword(newGroupId); // Use the new groupId to save the password
-            console.log("создание папки 2")
+            savePassword(newGroupId);
 
         }).catch((error) => {
             console.error('Ошибка при создании папки:', error);
-            message.error('Невозмножно создать папку');
+            message.error('Невозможно создать папку');
             setLoading(false);
         });
     } else {
         const groupIdToUse = selectedGroup === 'null' ? null : selectedGroup;
-        console.log(groupIdToUse)
         savePassword(groupIdToUse); // Save password with selected group
     }
     setLoading(false);
@@ -124,9 +121,11 @@ const SaveNewPassword = ({ userId, onPasswordAdd }) => {
             password: password,
             folder_id: groupIdToUse,
             user_id: userId,
-            comment: comments || null,    // Можно передавать null, если комментарий пустой
-            url: urlField || null,        // Можно передавать null, если URL пустой
+            comment: comments || null,
+            url: urlField || null,
         };
+        console.log("newpassworditem"+name)
+
 
         addPasswordItem(newPasswordItem, groupIdToUse)
             .then((newItem) => {
@@ -182,7 +181,7 @@ const SaveNewPassword = ({ userId, onPasswordAdd }) => {
 
         return {
             score,
-            message: ["Very Weak", "Weak", "Medium", "Strong", "Very Strong"][score],
+            message: ["Очень простой", "Простой", "Средний", "Сложный", "Очень сложный"][score],
         };
     };
 

@@ -14,11 +14,10 @@ import axios from './axiosConfg';
 import './styles.css';
 import './dark-mode.css'
 
-import { usePasswordContext } from './PasswordContext';
-
 const { Search } = Input;
 
 const { TabPane } = Tabs;
+
 const { Text } = Typography;
 
 const onChange = (checked) => {
@@ -133,9 +132,6 @@ const MainPage = ({ groupId, userId, setGroupItems, passwordItems, setPasswordIt
             .then((response) => {
                 const data = response.data;
                 setPasswordItems(data.passwords);
-                setNextPageSearch(data.next_page);
-                setPrevPageSearch(data.previous_page);
-                setCurrentPageSearch(page);
             })
             .catch((error) => {
                 console.error('Error fetching search results:', error);
@@ -158,112 +154,104 @@ const MainPage = ({ groupId, userId, setGroupItems, passwordItems, setPasswordIt
         setIsSaveButtonDisabled(isUnchanged);
     }, [editedItemName, editedUserName, editedPassword, editedGroup, editedComment, editedUrl, originalItemName, originalUserName, originalPassword, originalGroup, originalComment, originalUrl]);
 
-    // Fetch history data for a specific password item with pagination
-    const fetchHistoryData = (passId, url = null, page = 1) => {
-        setHistoryLoading(true);
-        let endpoint = url || `password-history/${passId}/?page=${page}`;
-
-        axios.get(endpoint)
-            .then((response) => {
-                const data = response.data;
-                setHistoryData(data);  // Set history data
-                setHistoryNextPage(data.next_page);  // Set next page
-                setHistoryPrevPage(data.previous_page);  // Set previous page
-                setHistoryCurrentPage(page);  // Update current history page
-            })
-            .catch((error) => {
-                console.error('Error fetching history data:', error);
-            })
-            .finally(() => {
-                setHistoryLoading(false);
-            });
-    };
 
     const handleMenuClick = async (record) => {
         setClickedRow(record);
         setIsModalOpen(true);
-        fetchHistoryData(record.passId);  // Fetch first page of history when opening the modal
+        console.log("record clicked");
+        console.log(record)
+
         try {
-            const history = await fetchHistory(record.passId);
+
+            let history = await fetchHistory(record.id);
+
             // Ensure that if no history exists, historyData is set to an empty array
-            if (history && history.length > 0) {
+            if (history && history[0].updated_at.length > 0) {
                 setHistoryData(history);
+                console.log("historyData")
+                console.log(historyData)
             } else {
                 setHistoryData([]); // Set to an empty array if no history is found
             }
         } catch (error) {
-            //message.error('Failed to fetch history');
             setHistoryData([]); // Ensure we set an empty array in case of an error
         }
 
         // Set current values in the form
-        setEditedItemName(record.itemName);
-        setEditedUserName(record.userName);
+        setEditedItemName(record.name);
+        setEditedUserName(record.login);
         setEditedPassword(record.password);
         setEditedGroup(record.groupName);
         setEditedComment(record.comment);
-        setEditedUrl(record.url); // Set URL from the record
+        setEditedUrl(record.url);
 
         // Set original values for comparison
-        setOriginalItemName(record.itemName);
-        setOriginalUserName(record.userName);
+        setOriginalItemName(record.name);
+        setOriginalUserName(record.login);
         setOriginalPassword(record.password);
         setOriginalGroup(record.groupName);
         setOriginalComment(record.comment);
-        setOriginalUrl(record.url); // Set original URL
-
-
+        setOriginalUrl(record.url);
     };
 
     const handleSaveChanges = () => {
         if (!userId) {
-            console.error("userId is not defined");
+            console.error("Пользователь с таким id не найден");
             return;
         }
 
         const effectiveGroupId = groupId === -1 ? clickedRow.groupId : groupId;
 
+        console.log("clickedRow.id")
+        console.log(clickedRow.id)
+
         const updatedData = {
-            passId: clickedRow.passId,
-            itemName: editedItemName,
-            userName: editedUserName,
+            id: clickedRow.id,
+            name: editedItemName,
+            login: editedUserName,
             password: editedPassword,
-            groupId: effectiveGroupId,
-            userId: userId,
+            folder_id: effectiveGroupId,
+            user_id: userId,
             comment: editedComment,
             url: editedUrl // Include the URL in the updated data
         };
 
-        updatePasswordItem(clickedRow.passId, effectiveGroupId, updatedData, setData)
+
+        updatePasswordItem(clickedRow.id, effectiveGroupId, updatedData, setData)
             .then((response) => {
+                console.log("updatedData");
+                console.log(updatedData);
+                console.log("clickedRow.id")
+                console.log(clickedRow.id)
+                console.log(typeof (setData) );
                 setPasswordItems(prevData =>
                     prevData.map(item =>
-                        item.passId === clickedRow.passId ? { ...updatedData, passId: clickedRow.passId } : item
+                        item.id === clickedRow.id ? { ...updatedData, id: clickedRow.id } : item
                     )
                 );
-                message.success('Item updated successfully');
+                message.success('Запись успешно обновлена');
                 setIsModalOpen(false);
             })
             .catch((error) => {
-                message.error('Failed to update item');
+                message.error('Ошибка при обновлении записи');
             });
     };
 
     const handleDelete = () => {
         Modal.confirm({
-            title: 'Are you sure you want to delete this?',
-            okText: 'Delete',
+            title: 'Вы уверены что хотите удалить?',
+            okText: 'Удалить',
             onOk() {
                 if (clickedRow && clickedRow.passId) {
                     deleteData(clickedRow.passId, clickedRow.groupId, setPasswordItems, () => {
-                        message.success('Password item deleted successfully');
+                        message.success('Запись успешно удалена');
                         setIsModalOpen(false);
                     }, setGroupItems)
                         .catch(error => {
-                            message.error('Failed to delete password item or group');
+                            message.error('Ошибка при удалении');
                         });
                 } else {
-                    message.error('No valid item selected for deletion.');
+                    message.error('Не выбран элемент для удаления.');
                 }
             },
         });
@@ -286,18 +274,19 @@ const MainPage = ({ groupId, userId, setGroupItems, passwordItems, setPasswordIt
             }))
         );
     };
+    console.log('Текущие данные passwordItems:', passwordItems);
 
      const columns = [
         {
             title: 'Название',
-            dataIndex: 'itemName',
-            key: 'itemName',
+            dataIndex: 'name',
+            key: 'name',
         },
 
         {
             title: 'Логин',
-            dataIndex: 'userName',
-            key: 'userName',
+            dataIndex: 'login',
+            key: 'login',
         },
 
         {
@@ -352,8 +341,8 @@ const MainPage = ({ groupId, userId, setGroupItems, passwordItems, setPasswordIt
     const history_columns = [
         {
             title: 'Date',
-            dataIndex: 'updatedAt',
-            key: 'date',
+            dataIndex: 'updated_at',
+            key: 'Дата',
             render: (updatedAt) => {
                 const [date] = updatedAt.split(' ');  // Extract date (before space)
                 return <span>{date}</span>;
@@ -361,19 +350,14 @@ const MainPage = ({ groupId, userId, setGroupItems, passwordItems, setPasswordIt
         },
         {
             title: 'Time',
-            dataIndex: 'updatedAt',
-            key: 'time',
+            dataIndex: 'updated_at',
+            key: 'Время',
             render: (updatedAt) => {
                 const [, time] = updatedAt.split(' ');  // Extract time (after space)
                 return <span>{time}</span>;
             },
         },
-        {
-            title: 'Password',
-            dataIndex: 'oldPassword',
-            key: 'password',
-            render: (password) => <span>{password}</span>,
-        },
+
     ];
 
     return (
@@ -397,7 +381,7 @@ const MainPage = ({ groupId, userId, setGroupItems, passwordItems, setPasswordIt
             <Table
                 dataSource={passwordItems}
                 columns={columns}
-                rowKey={(record) => record.id}
+                rowKey={(record) => record.id ?? record.passId}
                 loading={loading}
                 pagination={false}
             />
@@ -412,11 +396,11 @@ const MainPage = ({ groupId, userId, setGroupItems, passwordItems, setPasswordIt
             >
 
                 <Tabs defaultActiveKey="1">
-                    <TabPane tab="Details" key="1">
+                    <TabPane tab="Детали" key="1">
                         {clickedRow && (
                             <div>
-                                <p><strong>Название:</strong> {clickedRow.itemName}</p>
-                                <p><strong>Логин:</strong> {clickedRow.userName}</p>
+                                <p><strong>Название:</strong> {clickedRow.name}</p>
+                                <p><strong>Логин:</strong> {clickedRow.login}</p>
                                 <p>
                                     <strong style={{marginRight: '10px'}}>Password:</strong>
                                     {isPasswordVisible ? clickedRow.password : '*'.repeat(clickedRow.password.length)}
@@ -427,7 +411,7 @@ const MainPage = ({ groupId, userId, setGroupItems, passwordItems, setPasswordIt
                                     />
                                 </p>
                                 <p>
-                                    <strong>Папка:</strong> {clickedRow.groupName ? clickedRow.groupName : 'Unlisted'}
+                                    <strong>Папка:</strong> {clickedRow.folder_id ? clickedRow.folder_id : 'Без папки'}
                                 </p>
                                 {clickedRow.comment && (
                                     <p>
@@ -446,55 +430,26 @@ const MainPage = ({ groupId, userId, setGroupItems, passwordItems, setPasswordIt
                             </div>
                         )}
                     </TabPane>
-                    <TabPane tab="History" key="2">
-                        {historyData.length > 0 ? (
+                    <TabPane tab="История" key="2">
+                        {historyData.length === 0 ? (  // Проверяем, что массив пуст
+                            <p>Нет доступной истории.</p>
+                        ) : (
                             <div>
                                 <Table
                                     columns={history_columns}
-                                    dataSource={historyData}
+                                    dataSource={Array.isArray(historyData) ? historyData : []}
                                     rowKey={(record) => record.updated_at}
                                     loading={historyLoading}
                                     pagination={false}
                                 />
-                                <div style={{display: 'flex', justifyContent: 'center', marginTop: 16}}>
-                                    <Button
-                                        onClick={() => fetchHistoryData(clickedRow.passId, historyPrevPage, historyCurrentPage - 1)}
-                                        disabled={!historyPrevPage}
-                                        style={{marginRight: 8}}
-                                    >
-                                        <LeftOutlined />
-                                    </Button>
-                                    <div
-                                        className="pagination-number-box"
-                                        style={{
-                                            width: '40px',
-                                            height: '40px',
-                                            lineHeight: '40px',
-                                            textAlign: 'center',
-                                            borderRadius: '4px',
-                                            margin: '0 12px',
-                                            fontSize: '16px',
-                                        }}
-                                    >
-                                        {historyCurrentPage}
-                                    </div>
-                                    <Button
-                                        onClick={() => fetchHistoryData(clickedRow.passId, historyNextPage, historyCurrentPage + 1)}
-                                        disabled={!historyNextPage}
-                                    >
-                                        <RightOutlined />
-                                    </Button>
-                                </div>
                             </div>
-                        ) : (
-                            <p>Нет доступной истории.</p>
                         )}
                     </TabPane>
                     <TabPane tab="Изменить" key="3">
                         {clickedRow && (
                             <div>
                                 <div style={{marginBottom: '10px'}}>
-                                    <label style={{fontWeight: 'bold'}}>Item Name</label>
+                                    <label style={{fontWeight: 'bold'}}>Название</label>
                                     <Input
                                         placeholder="Название"
                                         value={editedItemName}
@@ -502,7 +457,7 @@ const MainPage = ({ groupId, userId, setGroupItems, passwordItems, setPasswordIt
                                     />
                                 </div>
                                 <div style={{marginBottom: '10px'}}>
-                                    <label style={{fontWeight: 'bold'}}>User Name</label>
+                                    <label style={{fontWeight: 'bold'}}>Логин</label>
                                     <Input
                                         placeholder="Логин"
                                         value={editedUserName}
@@ -510,7 +465,7 @@ const MainPage = ({ groupId, userId, setGroupItems, passwordItems, setPasswordIt
                                     />
                                 </div>
                                 <div style={{marginBottom: '10px'}}>
-                                    <label style={{fontWeight: 'bold'}}>Password</label>
+                                    <label style={{fontWeight: 'bold'}}>Пароль</label>
                                     <Input.Password
                                         placeholder="Пароль"
                                         value={editedPassword}
@@ -519,7 +474,7 @@ const MainPage = ({ groupId, userId, setGroupItems, passwordItems, setPasswordIt
                                     />
                                 </div>
                                 <div style={{marginBottom: '10px'}}>
-                                    <label style={{fontWeight: 'bold'}}>Group</label>
+                                    <label style={{fontWeight: 'bold'}}>Папка</label>
                                     <Input
                                         placeholder="Папка"
                                         value={editedGroup}
@@ -527,7 +482,7 @@ const MainPage = ({ groupId, userId, setGroupItems, passwordItems, setPasswordIt
                                     />
                                 </div>
                                 <div style={{marginBottom: '10px'}}>
-                                    <label style={{fontWeight: 'bold'}}>Comment</label>
+                                    <label style={{fontWeight: 'bold'}}>Комментарий</label>
                                     <Input
                                         placeholder="Комментарий"
                                         value={editedComment}
@@ -547,7 +502,7 @@ const MainPage = ({ groupId, userId, setGroupItems, passwordItems, setPasswordIt
                                     onClick={handleSaveChanges}
                                     disabled={isSaveButtonDisabled}
                                 >
-                                    Save
+                                    Сохранить
                                 </Button>
                                 <Button danger onClick={handleDelete} style={{marginLeft: 8}}>
                                     Удалить

@@ -42,32 +42,34 @@ export const fetchPasswordById = (passId,groupId) => {
         });
 };
 
-export const updatePasswordItem = (passId, groupId, updatedData, setData) => {
+export const updatePasswordItem = (id, folder_id, updatedData, setData) => {
     // Adjust URL for unlisted items
-    const url = (groupId === null || groupId === 'null' || groupId === 0)
-        // ? `password-items/${passId}/`  // Use a different endpoint for unlisted items
-        ? `/passwords/${passId}`  // Use a different endpoint for unlisted items
-        // : `groups/${groupId}/password-items/${passId}/`;
-        : `/passwords/${passId}`;
+    const url = `passwords/${id}`;
 
     // Remove the groupId from the data if it's for unlisted items
     const dataToSend = { ...updatedData };
-    if (groupId === null || groupId === 'null' || groupId === 0) {
-        delete dataToSend.groupId;  // Remove groupId when it's unlisted or null
+    if (dataToSend.folder_id === 'null' || dataToSend.folder_id === 0 || dataToSend.folder_id === undefined) {
+        dataToSend.folder_id = null;
     }
 
+    console.log("id")
+    console.log(id)
+
     console.log(`Updating URL: ${url}`);
+
+    console.log("dataToSend")
+    console.log(dataToSend)
 
     return axios.put(url, dataToSend, config)
         .then(response => {
             if (response.data && typeof response.data === 'object') {
                 const updatedPasswordItem = {
-                    passId: response.data.passId,
-                    name: response.data.itemName,
-                    userName: response.data.userName,
+                    id: response.data.id,
+                    name: response.data.name,
+                    login: response.data.login,
                     password: response.data.password,
-                    groupId: response.data.groupId,
-                    userId: response.data.userId,
+                    folder_id: response.data.folder_id,
+                    user_id: response.data.user_id,
                     comment: response.data.comment,
                     url: response.data.url,
                 };
@@ -76,7 +78,7 @@ export const updatePasswordItem = (passId, groupId, updatedData, setData) => {
                 if (typeof setData === 'function') {
                     setData(prevData =>
                         prevData.map(item =>
-                            item.passId === updatedPasswordItem.passId ? updatedPasswordItem : item
+                            item.id === updatedPasswordItem.id ? updatedPasswordItem : item
                         )
                     );
                 } else {
@@ -166,12 +168,12 @@ export function fetchAllPasswordItems(setData) {
         .then(response => {
             if (response.data && Array.isArray(response.data)) {
                 const mappedData = response.data.map(item => ({
-                    passId: item.id,
-                    itemName: item.name,
-                    userName: item.login,
+                    id: item.id,
+                    name: item.name,
+                    login: item.login,
                     password: item.password,
-                    groupId: item.folder_id,
-                    userId: item.user_id,
+                    folder_id: item.folder_id,
+                    user_id: item.user_id,
                     comment: item.comment,
                     url: item.url,
                     isPasswordVisible: false,
@@ -187,16 +189,16 @@ export function fetchAllPasswordItems(setData) {
 }
 
 export function fetchUnlistedPasswordItems(setData) {
-    axios.get(`/passwords/user/${userId}`, config) // Adjust the endpoint if needed
+    axios.get(`/passwords/folders/unlisted/${userId}`, config)
         .then(response => {
             if (response.data && Array.isArray(response.data)) {
                 const mappedData = response.data.map(item => ({
-                    passId: item.id,
-                    itemName: item.name,
-                    userName: item.login,
+                    id: item.id,
+                    name: item.name,
+                    login: item.login,
                     password: item.password,
-                    groupId: item.folder_id,
-                    userId: item.user_id,
+                    folder_id: item.folder_id,
+                    user_id: item.user_id,
                     comment: item.comment,
                     url: item.url,
                     isPasswordVisible: false,
@@ -216,16 +218,15 @@ export function dataFetching(groupId, setData) {
         .then(response => {
             console.log(response.data);
             const passwordItemsWithGroupNames = response.data.map(item => ({
-                passId: item.id,
-                itemName: item.name,
-                userName: item.login,
+                id: item.id,
+                name: item.name,
+                login: item.login,
                 password: item.password,
-                groupId: item.folder_id,
-                userId: item.user_id,
+                folder_id: item.folder_id,
+                user_id: item.user_id,
                 comment: item.comment,
                 url: item.url,
-                createdAt: item.created_at,
-                updatedAt: item.updated_at,
+                isPasswordVisible: false,
             }));
             setData(passwordItemsWithGroupNames);
         })
@@ -234,14 +235,14 @@ export function dataFetching(groupId, setData) {
         });
 }
 
+
 export const fetchHistory = async (passwordId) => {
     try {
-        const response = await axios.get(`password-history/${passwordId}/`);
-        console.log('History response:', response.data.passwords); // Log the successful response
-        return response.data.passwords;
+        const response = await axios.get(`/passwords/user/${userId}/${passwordId}`);
+        console.log('History response:', response.data[0].updated_at); // Log the successful response
+        return response.data;
     } catch (error) {
         console.error('Error fetching history:', error.response || error); // Log the entire error object
-
         throw error;
     }
 };

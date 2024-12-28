@@ -238,10 +238,15 @@ ul {
 
 /* Custom styles for buttons */
 .ant-btn {
+
     border-radius: 0.25rem;
     font-weight: 600;
 }
-
+.ant-btn-circle{
+    position: fixed;
+    right: 20px;
+    bottom: 20px;
+}
 .ant-btn-primary {
     background-color: #1677ff;
     border-color: #1677ff;
