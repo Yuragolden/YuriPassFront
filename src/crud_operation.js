@@ -1,6 +1,5 @@
 import axios from './axiosConfg';
-import { jwtDecode } from 'jwt-decode';
-
+const userId = localStorage.getItem('userId');
 
 export const config = {
     headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }  // Correct usage of token for authorization
@@ -12,7 +11,7 @@ export function addPasswordItem(newItem, groupId) {
         console.log(key, payload[key]);
     }
 
-    return axios.post("/passwords/create", payload, config)  // Отправляем POST-запрос с данными
+    return axios.post(`/passwords/create/${userId}`, payload, config)  // Отправляем POST-запрос с данными
         .then(response => {
             console.log('Пароль успешно добавлен:', response.data);
             const createdPassId = response.data.id;  // Получаем ID нового пароля
@@ -30,8 +29,9 @@ export function addPasswordItem(newItem, groupId) {
 }
 
 // Helper function to fetch a password item by its ID
-export const fetchPasswordById = (passId,groupId) => {
-    return axios.get(`/passwords/${passId}`, config)
+export const fetchPasswordById = (passId) => {
+    console.log(passId)
+    return axios.get(`/passwords/user/${passId}/${userId}`, config)
         .then(response => {
             // Return the decrypted password item
             return response.data;
@@ -55,13 +55,13 @@ export const updatePasswordItem = (id, folder_id, updatedData, setData) => {
     console.log("id")
     console.log(id)
 
-    console.log(`Updating URL: ${url}`);
-
     console.log("dataToSend")
     console.log(dataToSend)
 
     return axios.put(url, dataToSend, config)
         .then(response => {
+            console.log('response')
+            console.log(response)
             if (response.data && typeof response.data === 'object') {
                 const updatedPasswordItem = {
                     id: response.data.id,
@@ -76,6 +76,7 @@ export const updatePasswordItem = (id, folder_id, updatedData, setData) => {
 
                 // Call the passed-in setData function to update the state
                 if (typeof setData === 'function') {
+                    console.log("sosi")
                     setData(prevData =>
                         prevData.map(item =>
                             item.id === updatedPasswordItem.id ? updatedPasswordItem : item
@@ -118,9 +119,9 @@ function deleteGroup(groupId, setGroupItems) {
 
 function checkAndDeleteGroup(groupId, setData, setGroupItems) {
     // Fetch all password items for this group to see if any are left
-    axios.get(`groups/${groupId}/password-items/`, config)
+    axios.get(`/passwords/folder/${userId}/${groupId}`, config)
         .then(response => {
-            const remainingItems = response.data.passwords || [];
+            const remainingItems = response.data || [];
 
             if (remainingItems.length === 0) {
                 // Group is empty, delete the group
@@ -136,18 +137,18 @@ function checkAndDeleteGroup(groupId, setData, setGroupItems) {
 }
 
 
-export function deleteData(passId, groupId, setData, onSuccess, setGroupItems) {
+export function deleteData(id, folder_id, setData, onSuccess, setGroupItems) {
     // Delete password item
-    return axios.delete(`groups/${groupId}/password-items/${passId}/`, config)
+    return axios.delete(`passwords/${id}`, config)
         .then((response) => {
-            if (response.status === 204) {
+            if (response.status === 200) {
                 console.log('Password item deleted successfully');
 
                 // Update the table by removing the deleted item from the data state
-                setData(prevData => prevData.filter(item => item.passId !== passId));
+                setData(prevData => prevData.filter(item => item.id !== id));
 
                 // After successful deletion, check if the group is empty
-                checkAndDeleteGroup(groupId, setData, setGroupItems);
+                checkAndDeleteGroup(folder_id, setData, setGroupItems);
 
                 // If deletion was successful, update the UI
                 onSuccess();  // Close the modal, update state, etc.
@@ -160,8 +161,6 @@ export function deleteData(passId, groupId, setData, onSuccess, setGroupItems) {
             throw error;
         });
 }
-
-const userId = localStorage.getItem('userId');
 
 export function fetchAllPasswordItems(setData) {
     axios.get(`/passwords/user/${userId}`, config)

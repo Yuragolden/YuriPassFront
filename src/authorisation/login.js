@@ -11,6 +11,7 @@ import { jwtDecode } from 'jwt-decode';
 const Login = () => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
+    const [master_password, setMaster_password] = useState('');
     const [error, setError] = useState('');
     const [showPassword, setShowPassword] = useState(false);
 
@@ -20,14 +21,11 @@ const Login = () => {
         e.preventDefault();
 
         try {
-            const response = await loginUser({ username, password });
+            const response = await loginUser({ username, password, master_password });
             localStorage.setItem('token', response.access_token);
-
             const decodedToken = jwtDecode(response.access_token);
-
             const user_Id = decodedToken.userId; // Извлеките user_id
             localStorage.setItem('userId', user_Id); // Сохраните userId в localStorage
-
 
             message.success('Успешный вход! Добро пожаловать...');
             setError('');
@@ -35,8 +33,8 @@ const Login = () => {
 
         } catch (err) {
             console.log('Ошибочка:', err);  // Log the entire error object
-            const errorMessage = err.response?.data?.detail || 'Неизвестная мне ошибочка.';
-            setError(errorMessage);  // Display the error
+            const errorMessage = err.response?.data?.detail || 'Неверные данные для входа.';
+            setError(errorMessage);
         }
     };
 
@@ -55,6 +53,7 @@ const Login = () => {
                             required
                         />
                     </div>
+
                     <div className="input-group">
                         <label>Пароль:</label>
                         <div className="password-wrapper">
@@ -67,12 +66,32 @@ const Login = () => {
                             <span
                                 className="toggle-password"
                                 onClick={() => setShowPassword(!showPassword)}
-                                style={{ cursor: 'pointer' }}
+                                style={{cursor: 'pointer'}}
                             >
-                                {showPassword ? <EyeOutlined /> : <EyeInvisibleOutlined />}
+                                {showPassword ? <EyeOutlined/> : <EyeInvisibleOutlined/>}
                             </span>
                         </div>
                     </div>
+
+                    <div className="input-group">
+                        <label>Мастер-пароль:</label>
+                        <div className="password-wrapper">
+                            <input
+                                type={showPassword ? 'text' : 'password'}
+                                value={master_password}
+                                onChange={(e) => setMaster_password(e.target.value)}
+                                required
+                            />
+                            <span
+                                className="toggle-password"
+                                onClick={() => setShowPassword(!showPassword)}
+                                style={{cursor: 'pointer'}}
+                            >
+                                {showPassword ? <EyeOutlined/> : <EyeInvisibleOutlined/>}
+                            </span>
+                        </div>
+                    </div>
+
                     <button type="submit" className="submit-btn">Войти</button>
                     <div className="new-user">
                         <p className="new-to-yuripass">
@@ -80,7 +99,7 @@ const Login = () => {
                             <span
                                 className="register-link"
                                 onClick={() => navigate('/register')}
-                                style={{ cursor: 'pointer', marginLeft: '5px' }}
+                                style={{cursor: 'pointer', marginLeft: '5px'}}
                             >
                                 Зарегистрироваться
                             </span>

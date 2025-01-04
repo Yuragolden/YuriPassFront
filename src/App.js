@@ -1,5 +1,8 @@
 import React, { useEffect, useState, useRef } from 'react';
 
+import AboutUsContainer from './AboutUsContainer';
+
+
 import { Breadcrumb, Layout, Menu, theme, Input, Button, Modal, message } from 'antd';
 import {
     DesktopOutlined,
@@ -68,41 +71,22 @@ const App = () => {
     const [showAuthModal, setShowAuthModal] = useState(false); // Add state for auth modal
     const user_id = localStorage.getItem('userId');
 
-
-    // Update login status when location changes (e.g., after login/logout)
     useEffect(() => {
         const token = localStorage.getItem('token');
-        setLoggedIn(!!token); // Update loggedIn state based on token presence
+        setLoggedIn(!!token);
         if (!token) {
-            setSelectedKey('login'); // Set the selected key to 'login' when logged out
+            setSelectedKey('login');
         }
     }, [location]);
 
-    // Focus on the input when the component mounts
-
-    useEffect(() => {
-        if (searchInputRef.current || (loggedIn && !isLoginPage && !isRegisterPage && !isAboutUsPage && searchInputRef.current)) {
-            searchInputRef.current.focus();
-        }
-    }, [selectedGroupId, loggedIn, isLoginPage, isRegisterPage, isAboutUsPage]);
-
-    const {
-        token: { colorBgContainer },
-    } = theme.useToken();
-
-    // This effect will set the selected key based on the current path
     useEffect(() => {
         const path = location.pathname;
-
-        if (path === '/about') {
-            setSelectedKey('1'); // '1' for "About Us"
-        } else if (path === '/passwords' && loggedIn) {
-            setSelectedKey('2'); // '2' for "Passwords"
-        } else if (path === '/login') {
-            setSelectedKey('login'); // 'login' for Login page
-        } else {
-            setSelectedKey('login'); // Default to 'login' if no other match
-        }
+        const keyMap = {
+            '/about': '1',
+            '/passwords': loggedIn ? '2' : 'login',
+            '/login': 'login'
+        };
+        setSelectedKey(keyMap[path] || 'login');
     }, [location, loggedIn]);
 
     // Check if the user is logged in and automatically fetch groups after login
@@ -115,14 +99,13 @@ const App = () => {
                 .get(`/folders/user/${userId}`, { headers: { Authorization: `Bearer ${token}` } })
                 .then((response) => {
                     if (Array.isArray(response.data)) {
-
-                        const unlistedGroup = getItem('Все', 'group-X');
-
+                        const unlistedGroup = getItem('Без папки', 'group-X');
+                        console.log("response.data");
+                        console.log(response.data);
                         const fetchedGroups = [
                             unlistedGroup,
                             ...response.data.map((group) => getItem(group.name, `group-${group.id}`))
                         ];
-
                         setGroupItems(fetchedGroups);
                     } else {
                         console.error('API вернул не массив', response.data);
@@ -135,6 +118,7 @@ const App = () => {
                 });
         }
     }, [loggedIn]);
+
 
     const fetchData = () => {
         if (selectedGroupId === -1) {
@@ -150,13 +134,6 @@ const App = () => {
         fetchData();
     }, [selectedGroupId]);
 
-    // useEffect(() => {
-    //     if (userId) {
-    //         fetchAllPasswordItems(setPasswordItems);
-    //         console.log('Данные загружены:', passwordItems);
-    //     }
-    // }, []);
-
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (searchRef.current && !searchRef.current.contains(event.target)) {
@@ -164,12 +141,9 @@ const App = () => {
                 setFilteredItems([]);
             }
         };
-
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
-
-
 
     const handleMenuClick = (key) => {
         setSelectedKey(key);
@@ -194,8 +168,8 @@ const App = () => {
                 if (groupId === 'X') {
                     setSelectedGroupId(null);
                     setBreadcrumbItems([
-                        {title: 'Папки'},
-                        {title: 'Все'},
+                        // {title: 'Папки'},
+                        {title: 'Без папки'},
                     ]);
                     fetchDataForUnlistedGroups();
                 } else {
@@ -214,26 +188,39 @@ const App = () => {
         }
     };
 
+// Функции для загрузки данных
     const fetchDataForAllGroups = () => {
-        axios
-            .get(`/passwords/user/${user_id}`, config)
-            .then((response) => {
-                setPasswordItems(response.data);
-            })
-            .catch((error) => {
-                console.error('Ошибка при получении всех записей', error);
-            });
+        const token = localStorage.getItem('token');
+        const userId = localStorage.getItem('userId');
+
+        if (token && userId) {
+            axios.get(`/passwords/user/${userId}`, { headers: { Authorization: `Bearer ${token}` } })
+                .then((response) => {
+                    console.log('Все пароли:', response.data);
+                    setPasswordItems(response.data); // Обновление состояния всех паролей
+                })
+                .catch((error) => {
+                    console.error('Ошибка при получении всех паролей:', error);
+                    setPasswordItems([]);
+                });
+        }
     };
 
     const fetchDataForUnlistedGroups = () => {
-        axios
-            .get(`/passwords/user/${user_id}`, config)
-            .then((response) => {
-                setPasswordItems(response.data);
-            })
-            .catch((error) => {
-                console.error('Ошибка при получении всех неотсортированных записей:', error);
-            });
+        const token = localStorage.getItem('token');
+        const userId = localStorage.getItem('userId');
+
+        if (token && userId) {
+            axios.get(`/passwords/folders/unlisted/${userId}`, { headers: { Authorization: `Bearer ${token}` } })
+                .then((response) => {
+                    console.log('Пароли "Без папки":', response.data);
+                    setPasswordItems(response.data); // Обновление состояния паролей для "Без папки"
+                })
+                .catch((error) => {
+                    console.error('Ошибка при получении паролей для "Без папки":', error);
+                    setPasswordItems([]);
+                });
+        }
     };
 
     const onOpenChange = (keys) => {
@@ -258,21 +245,28 @@ const App = () => {
                 label: 'Папки',
                 key: 'sub1',
                 icon: <UserOutlined />,
-                children: groupItems.length > 0 ? groupItems : [{ label: 'Loading...', key: 'loading' }],
+                children: groupItems.length > 0 ? groupItems : [{ label: 'Загрузка...', key: 'loading' }],
             }
         ] : []),
         {
-        label: loggedIn ? 'Выйти' : 'Войти',
-        key: loggedIn ? 'выйти' : 'войти',
-        icon: loggedIn ? <LogoutOutlined /> : <LoginOutlined />,
-        onClick: () => loggedIn ? showLogoutConfirmation() : navigate('/login')  // Show confirmation modal for logout
-    }
-];
+            label: loggedIn ? 'Выйти' : 'Войти',
+            key: loggedIn ? 'logout' : 'login',
+            icon: loggedIn ? <LogoutOutlined /> : <LoginOutlined />,
+            onClick: () => loggedIn ? showLogoutConfirmation() : navigate('/login'),
+        }
+    ];
+
+
+    useEffect(() => {
+        if (searchInputRef.current && (loggedIn && !isLoginPage && !isRegisterPage && !isAboutUsPage)) {
+            searchInputRef.current.focus();
+        }
+    }, [selectedGroupId, loggedIn]);
 
 
     const [breadcrumbItems, setBreadcrumbItems] = useState([
-        { title: 'Папки' },
-        { title: 'Все' },
+        // { title: 'Папки' },
+        { title: 'Без папки' },
     ]);
 
     const onMenuSelect = ({ key }) => {
@@ -295,43 +289,46 @@ const App = () => {
         setPasswordItems((prevItems) => [...prevItems, newItem]);  // Add the new password to the current state
     };
 
-    useEffect(() => {
-        if (selectedKey === '2') {
-            fetchDataForAllGroups(); // Fetch all password items for the default "Passwords" selection
-        }
-    }, [selectedKey]);
+    // useEffect(() => {
+    //     if (selectedKey === '2') {
+    //         fetchDataForAllGroups();
+    //     }
+    // }, [selectedKey]);
 
-const showLogoutConfirmation = () => {
-    setShowLogoutConfirm(true); // Show the logout confirmation modal
-};
+    const showLogoutConfirmation = () => {
+        setShowLogoutConfirm(true); // Show the logout confirmation modal
+    };
 
-const handleLogout = () => {
-    localStorage.removeItem('token'); // Remove the token
-    localStorage.removeItem('userId'); // Remove the token
-    setLoggedIn(false); // Update the login state
-    message.success('Успешный выход из аккаунта. До скорой встречи..');
-    setShowLogoutConfirm(false); // Close the logout confirmation modal
-    setSelectedKey('login'); // Reset selected key to 'login'
-    navigate('/login'); // Redirect to the login page
-};
+    const handleLogout = () => {
+        localStorage.removeItem('token');
+        localStorage.removeItem('userId');
+        localStorage.removeItem('id_admin');
+        setLoggedIn(false);
+        setPasswordItems([]); // Очистка паролей
+        setGroupItems([]); // Очистка папок
+        setSelectedGroupId(null); // Сброс выбранной группы
+        setSelectedKey('login'); // Установка ключа на страницу входа
+        setShowLogoutConfirm(false);
+        navigate('/login');
+    };
 
-    // Handle blur (unfocus) from the search input
+
     const onSearchBlur = () => {
         fetchData();  // Fetch normal group data when the search bar loses focus
     };
 
-const handleCancelLogout = () => {
-    setShowLogoutConfirm(false); // Close the confirmation modal without logging out
-    setSelectedKey('2');
-};
+    const handleCancelLogout = () => {
+        setShowLogoutConfirm(false); // Close the confirmation modal without logging out
+        setSelectedKey('2');
+    };
 
     const showModal = (item) => {
-    setSelectedPasswordItem(item); // Set the selected password item
-    setIsModalVisible(true); // Show the modal
+        setSelectedPasswordItem(item); // Set the selected password item
+        setIsModalVisible(true); // Show the modal
     };
 
     const handleCancel = () => {
-    setIsModalVisible(false); // Hide the modal
+    setIsModalVisible(false);
     };
 
     return (
@@ -343,13 +340,13 @@ const handleCancelLogout = () => {
                 <div style={{padding: '20px', textAlign: 'center', marginTop: '10px', position:'sticky', top: '2%'}}>
                     {!collapsed ? (
                         <img
-                            src="https://icon-library.com/images/password-icon-png/password-icon-png-28.jpg"
+                            src="https://drive.google.com/file/d/1zfnE_d6fsfpM_7L6i3S4-L3H2G-EfMOJ/view?usp=drive_link"
                             alt="Expanded Logo"
                             style={{width: '100%', maxHeight: '64px', objectFit: 'contain', }}
                         />
                     ) : (
                         <img
-                            src="https://icon-library.com/images/password-icon-png/password-icon-png-28.jpg"
+                            src="https://drive.google.com/file/d/1zfnE_d6fsfpM_7L6i3S4-L3H2G-EfMOJ/view?usp=drive_link"
                             alt="Collapsed Logo"
                             style={{width: '100%', maxHeight: '60px', objectFit: 'contain'}}
                         />
@@ -365,7 +362,6 @@ const handleCancelLogout = () => {
                     onOpenChange={onOpenChange}
                     items={groupMenuItems}
                 />
-
             </Sider>
 
             <Layout>
@@ -374,6 +370,7 @@ const handleCancelLogout = () => {
                         <Route path="/login" element={<Login/>}/>
                         <Route path="/register" element={<Register/>}/>
                         <Route path="/about" element={<AboutUs/>}/>
+                        {/*<Route path="/about" element={<AboutUsContainer/>}/>*/}
 
                         <Route path="/" element={<Navigate to="/about"/>}/>
 

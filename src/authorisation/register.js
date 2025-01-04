@@ -11,10 +11,12 @@ const Register = ({ onLogout }) => {
     const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [master_password, setMaster_Password] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [errors, setErrors] = useState({});
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [showMasterPassword, setShowMasterPassword] = useState(false);
     const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
@@ -31,7 +33,7 @@ const Register = ({ onLogout }) => {
 
         try {
             // Registration request
-            const response = await registerUser({ username, email, password });
+            const response = await registerUser({ username, email, password, master_password });
             message.success('Успешная регистрация! Перенаправляем на вход...');
             navigate('/login'); // Redirect to the login page
 
@@ -106,9 +108,9 @@ const Register = ({ onLogout }) => {
                             <span
                                 className="toggle-password"
                                 onClick={() => setShowPassword(!showPassword)}
-                                style={{ cursor: 'pointer' }}
+                                style={{cursor: 'pointer'}}
                             >
-                                {showPassword ? <EyeOutlined /> : <EyeInvisibleOutlined />}
+                                {showPassword ? <EyeOutlined/> : <EyeInvisibleOutlined/>}
                             </span>
                         </div>
                         {errors.password && <p className="error">{errors.password}</p>}
@@ -125,13 +127,34 @@ const Register = ({ onLogout }) => {
                             <span
                                 className="toggle-password"
                                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                style={{ cursor: 'pointer' }}
+                                style={{cursor: 'pointer'}}
                             >
-                                {showConfirmPassword ? <EyeOutlined /> : <EyeInvisibleOutlined />}
+                                {showConfirmPassword ? <EyeOutlined/> : <EyeInvisibleOutlined/>}
                             </span>
                         </div>
                         {errors.confirmPassword && <p className="error">{errors.confirmPassword}</p>}
                     </div>
+
+                    <div className="input-group">
+                        <label>Мастер-пароль:</label>
+                        <div className="password-wrapper">
+                            <input
+                                type={showMasterPassword ? 'text' : 'password'}
+                                value={master_password}
+                                onChange={(e) => setMaster_Password(e.target.value)}
+                                required
+                            />
+                            <span
+                                className="toggle-password"
+                                onClick={() => setShowMasterPassword(!showMasterPassword)}
+                                style={{cursor: 'pointer'}}
+                            >
+                                {showMasterPassword ? <EyeOutlined/> : <EyeInvisibleOutlined/>}
+                            </span>
+                        </div>
+                        {errors.password && <p className="error">{errors.password}</p>}
+                    </div>
+
                     <button type="submit" className="submit-btn">Регистрация</button>
                     <div className="old-user">
                         <p className="have-an-acc">
@@ -139,7 +162,7 @@ const Register = ({ onLogout }) => {
                             <span
                                 className="login-link"
                                 onClick={() => navigate('/login')}
-                                style={{ cursor: 'pointer', marginLeft: '5px' }}
+                                style={{cursor: 'pointer', marginLeft: '5px'}}
                             >
                                 Войти
                             </span>

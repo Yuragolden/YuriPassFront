@@ -650,7 +650,7 @@ body.dark-mode .pagination-number-box {
 
 
 body.dark-mode .share-box {
-    background-color: #001529 !important; /* Dark blue background */
+    /*background-color: #001529 !important; !* Dark blue background *!*/
     border: 0.5px solid #d3d3d3 !important; /* Slimmer border with light grey color */
     border-radius: 8px; /* Optional: Keep rounded corners */
     padding: 10px; /* Maintain padding */
@@ -663,7 +663,7 @@ body.dark-mode .share-switch {
 }
 
 body.dark-mode .share-switch.ant-switch-checked {
-    background-color: #0056b3 !important; /* Ensure distinct background when checked */
+    /*background-color: #0056b3 !important; !* Ensure distinct background when checked *!*/
     border-color: #ffffff !important; /* Keep the border white */
 
 }
@@ -679,7 +679,3 @@ body.dark-mode h2.ant-typography {
 body.dark-mode span.ant-typography.ant-typography-secondary {
     color: #d3d3d3 !important; /* Very light grey for subtle contrast */
 }
-
-
-
-

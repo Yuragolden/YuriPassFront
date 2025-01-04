@@ -8,7 +8,7 @@ import './styles.css';
 import './save_new_password.css'
 
 const { Option } = Select;
-// const userId = localStorage.getItem('userId');
+const user_id = localStorage.getItem('userId');
 
 const SaveNewPassword = ({ userId, onPasswordAdd }) => {
     const [open, setOpen] = useState(false);
@@ -41,14 +41,14 @@ const SaveNewPassword = ({ userId, onPasswordAdd }) => {
 
                 // Добавляем папку "Unlisted" в начало списка
                 const groupsWithUnlisted = [
-                    { groupId: 'null', groupName: 'Без папки' }, // Можно добавить "Unlisted"
+                    { groupId: 'null', groupName: 'Без папки' },
                     ...response.data.map(group => ({
-                        groupId: group.id,    // Используем поле id из ответа
-                        groupName: group.name // Используем поле name из ответа
+                        groupId: group.id,
+                        groupName: group.name
                     })),
                 ];
 
-                setGroupOptions(groupsWithUnlisted); // Устанавливаем полученные группы в состояние
+                setGroupOptions(groupsWithUnlisted);
             } catch (error) {
                 console.error('Error fetching groups:', error);
             }
@@ -84,14 +84,16 @@ const SaveNewPassword = ({ userId, onPasswordAdd }) => {
         setUrlError('Invalid URL');
         return;
     }
-    console.log(urlField);
 
 
-    setLoading(true); // Set loading state to true
+    setLoading(true);
 
     // If a new group name is entered, create the group first
     if (newGroupName.trim() !== '') {
+
+        console.log("newGroupName");
         console.log(newGroupName);
+
         createNewGroup(newGroupName).then((newGroupId) => {
 
             savePassword(newGroupId);
@@ -124,13 +126,11 @@ const SaveNewPassword = ({ userId, onPasswordAdd }) => {
             comment: comments || null,
             url: urlField || null,
         };
-        console.log("newpassworditem"+name)
 
 
         addPasswordItem(newPasswordItem, groupIdToUse)
             .then((newItem) => {
-                // message.success('Новая запись успешно создана');
-                console.log("a tit")
+                message.success('Новая запись успешно создана');
                 onPasswordAdd(newItem);
                 setOpen(false);
             })
@@ -149,19 +149,19 @@ const SaveNewPassword = ({ userId, onPasswordAdd }) => {
     };
 
     const generatePassword = () => {
-        axios.post('password-items/generate/', {})
+        axios.post('passwords/generate', {})
             .then(response => {
-                if (response.data && response.data.generated_password) {
-                    setPassword(response.data.generated_password);
-                    message.success('Password generated successfully');
-                    updatePasswordStrength(response.data.generated_password);
+                if (response.data && response.data) {
+                    setPassword(response.data);
+                    message.success('Пароль успешно сгенерирован');
+                    updatePasswordStrength(response.data);
                 } else {
-                    message.error('Unexpected response structure');
+                    message.error('Неверный ответ от сервера');
                 }
             })
             .catch(error => {
-                console.error('Error generating password:', error);
-                message.error('Failed to generate password');
+                console.error('Ошибка при генерации пароля: ', error);
+                message.error('Ошибка при генерации пароля');
             });
     };
 
@@ -218,15 +218,16 @@ const SaveNewPassword = ({ userId, onPasswordAdd }) => {
         }
     };
 
-    const inviteUser = async (groupId, emailOrUsername) => {
+    const inviteUser = async (groupId, emailOrUsername, ) => {
         if (!groupId || groupId === 'null') {
-            message.error("Please select a valid group before inviting users.");
+            message.error("Пожалуйста выберите доступную папку.");
             return;
         }
 
         try {
-            const response = await axios.post(`http://127.0.0.1:8000/api/groups/${groupId}/invite/`, {
+            const response = await axios.post(`companies/passwords/admin-add`, {
                 user: emailOrUsername,
+                admin_id: user_id,
             });
 
             if (response.status === 200) {
@@ -240,7 +241,11 @@ const SaveNewPassword = ({ userId, onPasswordAdd }) => {
 
     async function createNewGroup(groupName) {
         try {
-            const response = await fetch('/folders', {
+            console.log("user_id")
+            console.log(user_id)
+            console.log("groupName")
+            console.log(groupName)
+            const response = await fetch(`http://127.0.0.1:8000/folders/${user_id}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -249,12 +254,14 @@ const SaveNewPassword = ({ userId, onPasswordAdd }) => {
             });
 
             if (!response.ok) {
-                const errorText = await response.text(); // Получаем текст ошибки
-                console.error('Error response:', errorText); // Логируем ответ
+                const errorText = await response.text();
+                console.error('Error response:', errorText);
                 throw new Error('Не удалось создать группу');
             }
 
             const newGroup = await response.json();
+            console.log("newGroup v konce")
+            console.log(newGroup)
             return newGroup.id;
         } catch (error) {
             console.error(error);
@@ -330,7 +337,7 @@ const SaveNewPassword = ({ userId, onPasswordAdd }) => {
                     <Select
                         style={{ width: '100%', marginBottom: '10px' }}
                         placeholder="Выбрать папку"
-                        value={selectedGroup || undefined} // selectedGroup — это выбранный элемент
+                        value={selectedGroup || null} // selectedGroup — это выбранный элемент
                         onChange={(value) => {
                             setSelectedGroup(value);  // Устанавливаем выбранную группу
                             setIsSharingEnabled(sharedGroups.includes(value));  // Если это общая группа
@@ -377,7 +384,7 @@ const SaveNewPassword = ({ userId, onPasswordAdd }) => {
                 </div>
                 <div className={'share-box'} style={{borderRadius: '5px',height:'auto'}}>
                     <div style={{display: 'flex', alignItems: 'center', marginBottom: '5px', width: '100%'}}>
-                        <span style={{fontWeight: '500', marginRight: 'auto'}}>Share Password</span>
+                        <span style={{fontWeight: '500', marginRight: 'auto'}}>Поделиться паролем</span>
                         <Switch
                             defaultChecked={false}
                             onChange={(checked) => {
@@ -401,14 +408,12 @@ const SaveNewPassword = ({ userId, onPasswordAdd }) => {
                             }}
                             className="share-switch"
                         />
-
                     </div>
                     <Input
                         placeholder="Введите email"
                         style={{width: '100%', height:'31px'}}
                         disabled={!isSharingEnabled}
                     />
-
                 </div>
 
             </div>

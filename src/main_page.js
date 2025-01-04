@@ -83,10 +83,15 @@ const MainPage = ({ groupId, userId, setGroupItems, passwordItems, setPasswordIt
         setLoading(true);
         const userId = localStorage.getItem("userId");
 
-        axios.get(`/passwords/user/${userId}`)
+        // Если мы не в режиме поиска и не выбрана папка, загружаем все пароли
+        const url = groupId === -1
+            ? `/passwords/user/${userId}`  // Для всех паролей
+            : `/passwords/folder/${userId}/${groupId}`;
+
+        axios.get(url)
             .then((response) => {
                 const data = response.data;
-                setPasswordItems(data);  // Set the table data
+                setPasswordItems(data);
             })
             .catch((error) => {
                 console.error('Error fetching data:', error);
@@ -94,8 +99,8 @@ const MainPage = ({ groupId, userId, setGroupItems, passwordItems, setPasswordIt
             .finally(() => {
                 setLoading(false);
             });
-
     };
+
 
     // Fetch data when the component mounts or the groupId changes
     useEffect(() => {
@@ -181,7 +186,7 @@ const MainPage = ({ groupId, userId, setGroupItems, passwordItems, setPasswordIt
         setEditedItemName(record.name);
         setEditedUserName(record.login);
         setEditedPassword(record.password);
-        setEditedGroup(record.groupName);
+        setEditedGroup(record.folder_id);
         setEditedComment(record.comment);
         setEditedUrl(record.url);
 
@@ -189,7 +194,7 @@ const MainPage = ({ groupId, userId, setGroupItems, passwordItems, setPasswordIt
         setOriginalItemName(record.name);
         setOriginalUserName(record.login);
         setOriginalPassword(record.password);
-        setOriginalGroup(record.groupName);
+        setOriginalGroup(record.folder_id);
         setOriginalComment(record.comment);
         setOriginalUrl(record.url);
     };
@@ -224,7 +229,7 @@ const MainPage = ({ groupId, userId, setGroupItems, passwordItems, setPasswordIt
                 console.log("clickedRow.id")
                 console.log(clickedRow.id)
                 console.log(typeof (setData) );
-                setPasswordItems(prevData =>
+                setPasswordItems((prevData) =>
                     prevData.map(item =>
                         item.id === clickedRow.id ? { ...updatedData, id: clickedRow.id } : item
                     )
@@ -242,8 +247,8 @@ const MainPage = ({ groupId, userId, setGroupItems, passwordItems, setPasswordIt
             title: 'Вы уверены что хотите удалить?',
             okText: 'Удалить',
             onOk() {
-                if (clickedRow && clickedRow.passId) {
-                    deleteData(clickedRow.passId, clickedRow.groupId, setPasswordItems, () => {
+                if (clickedRow && clickedRow.id) {
+                    deleteData(clickedRow.id, clickedRow.groupId, setPasswordItems, () => {
                         message.success('Запись успешно удалена');
                         setIsModalOpen(false);
                     }, setGroupItems)
@@ -262,7 +267,7 @@ const MainPage = ({ groupId, userId, setGroupItems, passwordItems, setPasswordIt
         setClickedRow(null);
     };
 
-      const toggleAllPasswordsVisibility = () => {
+    const toggleAllPasswordsVisibility = () => {
         const newVisibility = !isPasswordVisible;
         setIsPasswordVisible(newVisibility);
 
@@ -274,7 +279,6 @@ const MainPage = ({ groupId, userId, setGroupItems, passwordItems, setPasswordIt
             }))
         );
     };
-    console.log('Текущие данные passwordItems:', passwordItems);
 
      const columns = [
         {
@@ -294,7 +298,7 @@ const MainPage = ({ groupId, userId, setGroupItems, passwordItems, setPasswordIt
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <span>Пароль</span>
                     <Button
-                        type="link"  // Low-key, link-styled button
+                        type="link"
                         onClick={toggleAllPasswordsVisibility}
                         style={{ fontSize: '14px', color: '#4b6584' }}  // Adjust style to blend in
                     >
@@ -310,33 +314,32 @@ const MainPage = ({ groupId, userId, setGroupItems, passwordItems, setPasswordIt
                     <span>
                     {record.isPasswordVisible ? record.password : passwordMasked}
                         <span
-                            style={{ marginLeft: 8, cursor: 'pointer' }}
+                            style={{marginLeft: 8, cursor: 'pointer'}}
                             onClick={() => {
-                                console.log("yuraloh")
-                                console.log(record)
                                 record.isPasswordVisible = !record.isPasswordVisible;
-                                setPasswordItems([...passwordItems]);  // Update the table with visibility toggled
+                                setPasswordItems([...passwordItems]);
                             }}
                         >
-                        {record.isPasswordVisible ? <EyeInvisibleOutlined /> : <EyeOutlined />}
+                            {record.isPasswordVisible ? <EyeInvisibleOutlined/> : <EyeOutlined/>}
+                        </span>
                     </span>
-                </span>
                 );
             },
         },
 
-        {
-            title: '',
-            key: 'actions',
-            render: (_, record) => (
-                <MoreOutlined
-                    className="action-icon"
-                    style={{ cursor: 'pointer', fontSize: '24px' }}
-                    onClick={() => handleMenuClick(record)}
-                />
-            ),
-        },
-    ];
+         {
+             title: '',
+             key: 'actions',
+             render: (_, record) => (
+                 <MoreOutlined
+                     className="action-icon"
+                     style={{cursor: 'pointer', fontSize: '24px'}}
+                     onClick={() => handleMenuClick(record)}
+                 />
+             ),
+         },
+     ];
+
 
     const history_columns = [
         {
@@ -344,7 +347,7 @@ const MainPage = ({ groupId, userId, setGroupItems, passwordItems, setPasswordIt
             dataIndex: 'updated_at',
             key: 'Дата',
             render: (updatedAt) => {
-                const [date] = updatedAt.split(' ');  // Extract date (before space)
+                const [date] = updatedAt.split('T');
                 return <span>{date}</span>;
             },
         },
@@ -353,12 +356,14 @@ const MainPage = ({ groupId, userId, setGroupItems, passwordItems, setPasswordIt
             dataIndex: 'updated_at',
             key: 'Время',
             render: (updatedAt) => {
-                const [, time] = updatedAt.split(' ');  // Extract time (after space)
+                let [, time] = updatedAt.split('T')
+                time = time.slice(0, 8);
                 return <span>{time}</span>;
             },
         },
 
     ];
+    const filteredPasswordItems = passwordItems.filter(item => item !== undefined);
 
     return (
         <div>
@@ -371,15 +376,17 @@ const MainPage = ({ groupId, userId, setGroupItems, passwordItems, setPasswordIt
                 // ref={searchInputRef}
             />
             {/* Switch on the right side */}
-            <div className="right-section">
-                <Switch checked={isDarkMode} onChange={toggleDarkMode}/>
-            </div>
+
+            {/*delete*/}
+            {/*<div className="right-section">*/}
+            {/*    <Switch checked={isDarkMode} onChange={toggleDarkMode}/>*/}
+            {/*</div>*/}
 
             <Breadcrumb style={{margin: '16px 0'}} items={breadcrumbItems}>
 
             </Breadcrumb>
             <Table
-                dataSource={passwordItems}
+                dataSource={filteredPasswordItems}
                 columns={columns}
                 rowKey={(record) => record.id ?? record.passId}
                 loading={loading}
