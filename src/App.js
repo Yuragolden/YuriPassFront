@@ -93,8 +93,6 @@ const App = () => {
     // Check if the user is logged in and automatically fetch groups after login
     useEffect( () => {
         const token = localStorage.getItem('token');
-        const userId = localStorage.getItem('userId');
-        const user_id = userId;
         setLoggedIn(!!token);
 
         if (token) {
@@ -122,16 +120,6 @@ const App = () => {
         }
     }, [loggedIn === true, token === true]);
 
-
-    const fetchData =  () => {
-        if (selectedGroupId === null || selectedGroupId === -1) return;
-        dataFetching(selectedGroupId, setPasswordItems);
-    }
-
-    useEffect( () => {
-         fetchData();
-    }, [selectedGroupId]);
-
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (searchRef.current && !searchRef.current.contains(event.target)) {
@@ -142,6 +130,18 @@ const App = () => {
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
+
+
+
+    const fetchData =  () => {
+        if (selectedGroupId === null || selectedGroupId === -1) return;
+        dataFetching(selectedGroupId, setPasswordItems);
+    }
+
+    useEffect( () => {
+         fetchData();
+    }, [selectedGroupId]);
+
 
     const handleMenuClick = (key) => {
         setSelectedKey(key);
@@ -285,12 +285,12 @@ const App = () => {
     const onPasswordAdd = (newItem) => {
         setPasswordItems((prevItems) => {return [...prevItems, newItem[0]]});
     };
+
     const onSetGroupItems = (newGroup) =>{
         setGroupItems((prevItems) => {
             console.log([...prevItems, getItem(newGroup.name, `group-${newGroup.id}`)])
             return [...prevItems, getItem(newGroup.name, `group-${newGroup.id}`)]});
     }
-
 
     const showLogoutConfirmation = () => {
         setShowLogoutConfirm(true); // Show the logout confirmation modal
@@ -323,10 +323,6 @@ const App = () => {
         }
     };
 
-
-    const onSearchBlur = () => {
-        fetchData();  // Fetch normal group data when the search bar loses focus
-    };
 
     const handleCancelLogout = () => {
         setShowLogoutConfirm(false); // Close the confirmation modal without logging out
@@ -395,6 +391,7 @@ const App = () => {
                                     passwordItems={passwordItems} // Pass down the password items
                                     setPasswordItems={setPasswordItems}
                                     breadcrumbItems={breadcrumbItems}  // Pass breadcrumb items as props
+                                    selectedGroupId={selectedGroupId}
                                 />
                             </PrivateRoute>
                         }
@@ -476,7 +473,4 @@ const App = () => {
         </PasswordProvider>
     );
 };
-
-
-
 export default App;

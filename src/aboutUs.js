@@ -28,7 +28,6 @@ const AboutUs = () => {
                         <Link to='/passwords'>
                         <button className="primary-button-about-us">Вперед</button>
                         </Link>
-                        {/*<button className="secondary-button">Learn More</button>*/}
                     </div>
                 </div>
 

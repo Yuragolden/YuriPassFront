@@ -22,7 +22,7 @@ const onChange = (checked) => {
 };
 
 
-const MainPage = ({ groupId, userId, setGroupItems, passwordItems, setPasswordItems,breadcrumbItems  }) => {
+const MainPage = ({ groupId, userId, setGroupItems, passwordItems, setPasswordItems,breadcrumbItems, selectedGroupId }) => {
     const [data, setData] = useState([]);
     const [clickedRow, setClickedRow] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -46,10 +46,12 @@ const MainPage = ({ groupId, userId, setGroupItems, passwordItems, setPasswordIt
 
     const [loading, setLoading] = useState(false);
     const [searchMode, setSearchMode] = useState(false); // To track if we are in search mode
-
     const [historyLoading, setHistoryLoading] = useState(false);
-
     const [isDarkMode, setIsDarkMode] = useState(false);
+
+    const [filteredItems, setFilteredItems] = useState([]); // Отфильтрованные записи
+    const [isSearching, setIsSearching] = useState(false); // Индикатор состояния поиска
+
 
 
 
@@ -73,27 +75,37 @@ const MainPage = ({ groupId, userId, setGroupItems, passwordItems, setPasswordIt
             setIsDarkMode(true);
         }
     }, []);
+
     const onSearch = (value) => {
-        const trimmedQuery = value.trim();
+        const trimmedQuery = value.trim().toLowerCase();
         setSearchMode(Boolean(trimmedQuery));
 
         if (!trimmedQuery) {
-            // fetchData();  // Просто загружайте все пароли снова
+            fetchDataForCurrentGroup();
             return;
         }
 
-        // Здесь можно оставить логику поиска без изменения, если у вас есть отдельный эндпоинт для поиска
-        const endpoint = `passwords/search/?query=${encodeURIComponent(trimmedQuery)}`;
+        // Локальная фильтрация данных
+        const filteredItems = passwordItems.filter((item) =>
+            item.name.toLowerCase().includes(trimmedQuery)
+        );
 
-        axios.get(endpoint)
-            .then((response) => {
-                const data = response.data;
-                setPasswordItems(data);
-            })
-            .catch((error) => {
-                console.error('Error during search:', error);
-            });
+        setPasswordItems(filteredItems);
     };
+
+    const fetchDataForCurrentGroup = () => {
+        if (selectedGroupId === null || selectedGroupId === -1) {
+            fetchDataForAllGroups(); // Все записи
+        } else if (selectedGroupId === 'X') {
+            fetchDataForUnlistedGroups(); // Записи "Без папки"
+        } else {
+            dataFetching(selectedGroupId, setPasswordItems); // Записи для конкретной папки
+        }
+    };
+
+
+
+
     const fetchSearchResults = (url, page) => {
         setLoading(true);
         axios.get(url)
@@ -327,28 +339,52 @@ const MainPage = ({ groupId, userId, setGroupItems, passwordItems, setPasswordIt
 
     const filteredPasswordItems = passwordItems.filter(item => item !== undefined);
 
+    const handleSearch = (query) => {
+        if (!query) {
+            // Если строка поиска пуста, показываем все записи
+            setFilteredItems(passwordItems);
+            setIsSearching(false);
+            return;
+        }
+
+        const results = passwordItems.filter(item => {
+            // Проверяем, что поля не null и приводим их к строке перед использованием toLowerCase
+            return (
+                (item.name && item.name.toLowerCase().includes(query.toLowerCase())) ||
+                (item.login && item.login.toLowerCase().includes(query.toLowerCase())) ||
+                (item.url && item.url.toLowerCase().includes(query.toLowerCase()))
+            );
+        });
+
+        setFilteredItems(results); // Сохраняем результаты
+        setIsSearching(true); // Указываем, что идет поиск
+    };
+
+
+
+    useEffect(() => {
+        setFilteredItems([]); // Сброс фильтров
+        setIsSearching(false); // Установка состояния "поиск выключен"
+    }, [selectedGroupId]);
+
+    useEffect(() => {
+        setFilteredItems(passwordItems); // При изменении passwordItems обновляем filteredItems
+    }, [passwordItems]);
+
+
+
     return (
         <div>
             <Search
                 placeholder="Что будем искать?"
-                onSearch={onSearch}
+                onChange={(e) => handleSearch(e.target.value)}
                 className="custom-search-bar"
-                //onBlur={onSearchBlur}
-
-                // ref={searchInputRef}
             />
-            {/* Switch on the right side */}
 
-            {/*delete*/}
-            {/*<div className="right-section">*/}
-            {/*    <Switch checked={isDarkMode} onChange={toggleDarkMode}/>*/}
-            {/*</div>*/}
+            <Breadcrumb style={{margin: '16px 0'}} items={breadcrumbItems}></Breadcrumb>
 
-            <Breadcrumb style={{margin: '16px 0'}} items={breadcrumbItems}>
-
-            </Breadcrumb>
             <Table
-                dataSource={filteredPasswordItems}
+                dataSource={filteredItems} // Исправляем с filteredPasswordItems на filteredItems
                 columns={columns}
                 rowKey={(record) => record.id ?? record.passId}
                 loading={loading}
@@ -361,9 +397,7 @@ const MainPage = ({ groupId, userId, setGroupItems, passwordItems, setPasswordIt
                 onCancel={handleModalClose}
                 footer={null}
                 className="password-details-modal"
-
             >
-
                 <Tabs defaultActiveKey="1">
                     <TabPane tab="Детали" key="1">
                         {clickedRow && (
@@ -400,18 +434,16 @@ const MainPage = ({ groupId, userId, setGroupItems, passwordItems, setPasswordIt
                         )}
                     </TabPane>
                     <TabPane tab="История" key="2">
-                        {historyData.length === 0 ? (  // Проверяем, что массив пуст
+                        {historyData.length === 0 ? (
                             <p>Нет доступной истории.</p>
                         ) : (
-                            <div>
-                                <Table
-                                    columns={history_columns}
-                                    dataSource={Array.isArray(historyData) ? historyData : []}
-                                    rowKey={(record) => record.updated_at}
-                                    loading={historyLoading}
-                                    pagination={false}
-                                />
-                            </div>
+                            <Table
+                                columns={history_columns}
+                                dataSource={Array.isArray(historyData) ? historyData : []}
+                                rowKey={(record) => record.updated_at}
+                                loading={historyLoading}
+                                pagination={false}
+                            />
                         )}
                     </TabPane>
                     <TabPane tab="Изменить" key="3">
@@ -483,6 +515,7 @@ const MainPage = ({ groupId, userId, setGroupItems, passwordItems, setPasswordIt
             </Modal>
         </div>
     );
+
 };
 
 export default MainPage;
