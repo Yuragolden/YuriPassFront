@@ -6,11 +6,12 @@ import { usePasswordContext } from './PasswordContext';
 import {addPasswordItem} from "./crud_operation";
 import './styles.css';
 import './save_new_password.css'
+import login from "./authorisation/login";
 
 const { Option } = Select;
 const user_id = localStorage.getItem('userId');
 
-const SaveNewPassword = ({ userId, onPasswordAdd }) => {
+const SaveNewPassword = ({ userId, onPasswordAdd, onSetGroupItems }) => {
     const [open, setOpen] = useState(false);
     const [fieldName, setFieldName] = useState('');
     const [username, setUsername] = useState('');
@@ -26,8 +27,8 @@ const SaveNewPassword = ({ userId, onPasswordAdd }) => {
     const [loading, setLoading] = useState(false); // Loading state
     const [isSharingEnabled, setIsSharingEnabled] = useState(true);
     const [sharedGroups, setSharedGroups] = useState([]);
-
     const token = localStorage.getItem('token');
+
     useEffect(() => {
         const fetchGroups = async () => {
             try {
@@ -47,7 +48,6 @@ const SaveNewPassword = ({ userId, onPasswordAdd }) => {
                         groupName: group.name
                     })),
                 ];
-
                 setGroupOptions(groupsWithUnlisted);
             } catch (error) {
                 console.error('Error fetching groups:', error);
@@ -75,13 +75,12 @@ const SaveNewPassword = ({ userId, onPasswordAdd }) => {
     if (loading) return;
 
     if (selectedGroup === null && newGroupName.trim() === '') {
-        message.error("Please select a group or enter a new group name.");
+        message.error("Пожалуйста выберите группу или введите название для новой.");
         return;
     }
-    console.log(selectedGroup);
 
     if (urlField && !isValidUrl(urlField)) {
-        setUrlError('Invalid URL');
+        setUrlError('Неверный URL');
         return;
     }
 
@@ -95,7 +94,6 @@ const SaveNewPassword = ({ userId, onPasswordAdd }) => {
         console.log(newGroupName);
 
         createNewGroup(newGroupName).then((newGroupId) => {
-
             savePassword(newGroupId);
 
         }).catch((error) => {
@@ -105,7 +103,7 @@ const SaveNewPassword = ({ userId, onPasswordAdd }) => {
         });
     } else {
         const groupIdToUse = selectedGroup === 'null' ? null : selectedGroup;
-        savePassword(groupIdToUse); // Save password with selected group
+        savePassword(groupIdToUse);
     }
     setLoading(false);
 
@@ -118,7 +116,7 @@ const SaveNewPassword = ({ userId, onPasswordAdd }) => {
         }
 
         const newPasswordItem = {
-            name: fieldName,          // Убедитесь, что все эти поля содержат корректные значения
+            name: fieldName,
             login: username,
             password: password,
             folder_id: groupIdToUse,
@@ -128,10 +126,11 @@ const SaveNewPassword = ({ userId, onPasswordAdd }) => {
         };
 
 
-        addPasswordItem(newPasswordItem, groupIdToUse)
+        addPasswordItem(newPasswordItem)
             .then((newItem) => {
                 message.success('Новая запись успешно создана');
                 onPasswordAdd(newItem);
+                onSetGroupItems(newItem[0])
                 setOpen(false);
             })
             .catch((error) => {

@@ -3,7 +3,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import AboutUsContainer from './AboutUsContainer';
 
 
-import { Breadcrumb, Layout, Menu, theme, Input, Button, Modal, message } from 'antd';
+import { Layout, Menu, Input, Button, Modal, message } from 'antd';
 import {
     DesktopOutlined,
     PieChartOutlined,
@@ -16,7 +16,7 @@ import axios from './axiosConfg';
 import fuzzysort from 'fuzzysort';
 import MainPage from './main_page';
 import SaveNewPassword from './save_new_password';
-import { dataFetching, config, fetchAllPasswordItems, fetchUnlistedPasswordItems } from './crud_operation';
+import { dataFetching, config } from './crud_operation';
 import './styles.css';
 import {Navigate, Route, Routes, useNavigate} from 'react-router-dom';
 import Login from './authorisation/login';
@@ -25,7 +25,6 @@ import PrivateRoute from './authorisation/PrivateRoute';
 import AboutUs from "./aboutUs";
 import { useLocation } from 'react-router-dom';
 import { PasswordProvider } from './PasswordContext';
-const userId = localStorage.getItem('userId');
 
 const { Search } = Input;
 const { Header, Content, Footer, Sider } = Layout;
@@ -70,6 +69,8 @@ const App = () => {
     const isAboutUsPage = location.pathname === '/about';
     const [showAuthModal, setShowAuthModal] = useState(false); // Add state for auth modal
     const user_id = localStorage.getItem('userId');
+    const token = localStorage.getItem('token');
+
 
     useEffect(() => {
         const token = localStorage.getItem('token');
@@ -90,23 +91,25 @@ const App = () => {
     }, [location, loggedIn]);
 
     // Check if the user is logged in and automatically fetch groups after login
-    useEffect(() => {
+    useEffect( () => {
         const token = localStorage.getItem('token');
+        const userId = localStorage.getItem('userId');
+        const user_id = userId;
         setLoggedIn(!!token);
 
         if (token) {
             axios
-                .get(`/folders/user/${userId}`, { headers: { Authorization: `Bearer ${token}` } })
+                .get(`/folders/user/${user_id}`, { headers: { Authorization: `Bearer ${token}` } })
                 .then((response) => {
                     if (Array.isArray(response.data)) {
                         const unlistedGroup = getItem('Без папки', 'group-X');
-                        console.log("response.data");
-                        console.log(response.data);
                         const fetchedGroups = [
                             unlistedGroup,
                             ...response.data.map((group) => getItem(group.name, `group-${group.id}`))
                         ];
                         setGroupItems(fetchedGroups);
+                        fetchDataForAllGroups()
+                        console.log(fetchedGroups);
                     } else {
                         console.error('API вернул не массив', response.data);
                         setGroupItems([]);
@@ -117,21 +120,16 @@ const App = () => {
                     setGroupItems([]);
                 });
         }
-    }, [loggedIn]);
+    }, [loggedIn === true, token === true]);
 
 
-    const fetchData = () => {
-        if (selectedGroupId === -1) {
-            fetchAllPasswordItems(setPasswordItems);
-        } else if (selectedGroupId) {
-            dataFetching(selectedGroupId, setPasswordItems);
-        } else {
-            fetchUnlistedPasswordItems(setPasswordItems);
-        }
-    };
+    const fetchData =  () => {
+        if (selectedGroupId === null || selectedGroupId === -1) return;
+        dataFetching(selectedGroupId, setPasswordItems);
+    }
 
-    useEffect(() => {
-        fetchData();
+    useEffect( () => {
+         fetchData();
     }, [selectedGroupId]);
 
     useEffect(() => {
@@ -189,7 +187,7 @@ const App = () => {
     };
 
 // Функции для загрузки данных
-    const fetchDataForAllGroups = () => {
+    const fetchDataForAllGroups =  () => {
         const token = localStorage.getItem('token');
         const userId = localStorage.getItem('userId');
 
@@ -206,7 +204,7 @@ const App = () => {
         }
     };
 
-    const fetchDataForUnlistedGroups = () => {
+    const fetchDataForUnlistedGroups =  () => {
         const token = localStorage.getItem('token');
         const userId = localStorage.getItem('userId');
 
@@ -265,7 +263,6 @@ const App = () => {
 
 
     const [breadcrumbItems, setBreadcrumbItems] = useState([
-        // { title: 'Папки' },
         { title: 'Без папки' },
     ]);
 
@@ -286,30 +283,44 @@ const App = () => {
     const userItem = [getItem('User', '3', <DesktopOutlined />)];
 
     const onPasswordAdd = (newItem) => {
-        setPasswordItems((prevItems) => [...prevItems, newItem]);  // Add the new password to the current state
+        setPasswordItems((prevItems) => {return [...prevItems, newItem[0]]});
     };
+    const onSetGroupItems = (newGroup) =>{
+        setGroupItems((prevItems) => {
+            console.log([...prevItems, getItem(newGroup.name, `group-${newGroup.id}`)])
+            return [...prevItems, getItem(newGroup.name, `group-${newGroup.id}`)]});
+    }
 
-    // useEffect(() => {
-    //     if (selectedKey === '2') {
-    //         fetchDataForAllGroups();
-    //     }
-    // }, [selectedKey]);
 
     const showLogoutConfirmation = () => {
         setShowLogoutConfirm(true); // Show the logout confirmation modal
     };
 
-    const handleLogout = () => {
-        localStorage.removeItem('token');
-        localStorage.removeItem('userId');
-        localStorage.removeItem('id_admin');
-        setLoggedIn(false);
-        setPasswordItems([]); // Очистка паролей
-        setGroupItems([]); // Очистка папок
-        setSelectedGroupId(null); // Сброс выбранной группы
-        setSelectedKey('login'); // Установка ключа на страницу входа
-        setShowLogoutConfirm(false);
-        navigate('/login');
+    const handleLogout = async () => {
+        const token = localStorage.getItem("token");
+        console.log(token)
+        console.log(config)
+
+        try {
+            // Отправляем запрос на отзыв токена
+            await axios.post(
+                "/auth/logout",
+                {"token": token},
+
+            );
+            localStorage.removeItem('token');
+            localStorage.removeItem('userId');
+            localStorage.removeItem('id_admin');
+            setLoggedIn(false);
+            setPasswordItems([]); // Очистка паролей
+            setGroupItems([]); // Очистка папок
+            setSelectedGroupId(-1); // Сброс выбранной группы
+            setSelectedKey('login'); // Установка ключа на страницу входа
+            setShowLogoutConfirm(false);
+            navigate('/login');
+        } catch (error) {
+            console.error("Ошибка при выходе:", error);
+        }
     };
 
 
@@ -384,7 +395,6 @@ const App = () => {
                                     passwordItems={passwordItems} // Pass down the password items
                                     setPasswordItems={setPasswordItems}
                                     breadcrumbItems={breadcrumbItems}  // Pass breadcrumb items as props
-
                                 />
                             </PrivateRoute>
                         }
@@ -394,8 +404,6 @@ const App = () => {
                 <Footer style={{ textAlign: 'center' }}>© 2024 YuriPass</Footer>
             </Layout>
 
-            {/* Plus Button at the bottom-right corner under the table */}
-            {/* Conditionally render the "Add New Password" button */}
 
             {!isLoginPage && !isRegisterPage && !isAboutUsPage &&(
                 <div style={{
@@ -409,10 +417,8 @@ const App = () => {
                         userId={user_id}
                         comment={comment}
                         url={url}
-                        onPasswordAdd={(newItem) => {
-                            setPasswordItems((prevItems) => [...prevItems, newItem]);  // Add new password to the table
-                        }}
-                        setGroupItems={setGroupItems}
+                        onPasswordAdd={onPasswordAdd}
+                        onSetGroupItems={onSetGroupItems}
                     />
                 </div>
 

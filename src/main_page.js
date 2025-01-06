@@ -3,11 +3,8 @@ import { Table, Modal, Tabs, Input, Typography, Button, message,Breadcrumb, Swit
 import { MoreOutlined, EyeOutlined, EyeInvisibleOutlined, LeftOutlined, RightOutlined } from '@ant-design/icons';
 import {
     config,
-    dataFetching,
     deleteData,
-    fetchAllPasswordItems,
     fetchHistory,
-    fetchUnlistedPasswordItems,
     updatePasswordItem
 } from './crud_operation';
 import axios from './axiosConfg';
@@ -68,7 +65,6 @@ const MainPage = ({ groupId, userId, setGroupItems, passwordItems, setPasswordIt
         localStorage.setItem("darkMode", checked);
         setIsDarkMode(checked);
     };
-
     useEffect(() => {
         const savedPreference = localStorage.getItem("darkMode") === "true";
         console.log(`Restoring dark mode preference: ${savedPreference ? "ON" : "OFF"}`);
@@ -77,42 +73,12 @@ const MainPage = ({ groupId, userId, setGroupItems, passwordItems, setPasswordIt
             setIsDarkMode(true);
         }
     }, []);
-
-    // Function to fetch data based on the group
-    const fetchData = async () => {
-        setLoading(true);
-        const userId = localStorage.getItem("userId");
-
-        // Если мы не в режиме поиска и не выбрана папка, загружаем все пароли
-        const url = groupId === -1
-            ? `/passwords/user/${userId}`  // Для всех паролей
-            : `/passwords/folder/${userId}/${groupId}`;
-
-        axios.get(url)
-            .then((response) => {
-                const data = response.data;
-                setPasswordItems(data);
-            })
-            .catch((error) => {
-                console.error('Error fetching data:', error);
-            })
-            .finally(() => {
-                setLoading(false);
-            });
-    };
-
-
-    // Fetch data when the component mounts or the groupId changes
-    useEffect(() => {
-        fetchData();
-    }, []);
-
     const onSearch = (value) => {
         const trimmedQuery = value.trim();
         setSearchMode(Boolean(trimmedQuery));
 
         if (!trimmedQuery) {
-            fetchData();  // Просто загружайте все пароли снова
+            // fetchData();  // Просто загружайте все пароли снова
             return;
         }
 
@@ -123,14 +89,11 @@ const MainPage = ({ groupId, userId, setGroupItems, passwordItems, setPasswordIt
             .then((response) => {
                 const data = response.data;
                 setPasswordItems(data);
-                // Обновите состояние для пагинации, если используете
             })
             .catch((error) => {
                 console.error('Error during search:', error);
             });
     };
-
-    // Change page in search results
     const fetchSearchResults = (url, page) => {
         setLoading(true);
         axios.get(url)
@@ -173,28 +136,26 @@ const MainPage = ({ groupId, userId, setGroupItems, passwordItems, setPasswordIt
             // Ensure that if no history exists, historyData is set to an empty array
             if (history && history[0].updated_at.length > 0) {
                 setHistoryData(history);
-                console.log("historyData")
-                console.log(historyData)
             } else {
-                setHistoryData([]); // Set to an empty array if no history is found
+                setHistoryData([]);
             }
         } catch (error) {
-            setHistoryData([]); // Ensure we set an empty array in case of an error
+            setHistoryData([]);
         }
 
-        // Set current values in the form
+        //новые значения
         setEditedItemName(record.name);
         setEditedUserName(record.login);
         setEditedPassword(record.password);
-        setEditedGroup(record.folder_id);
+        setEditedGroup(record.folder_name);
         setEditedComment(record.comment);
         setEditedUrl(record.url);
 
-        // Set original values for comparison
+        //начальные значения
         setOriginalItemName(record.name);
         setOriginalUserName(record.login);
         setOriginalPassword(record.password);
-        setOriginalGroup(record.folder_id);
+        setOriginalGroup(record.folder_name);
         setOriginalComment(record.comment);
         setOriginalUrl(record.url);
     };
@@ -215,20 +176,21 @@ const MainPage = ({ groupId, userId, setGroupItems, passwordItems, setPasswordIt
             name: editedItemName,
             login: editedUserName,
             password: editedPassword,
-            folder_id: effectiveGroupId,
+            folder_name: editedGroup,
+            folder_id: null,
             user_id: userId,
             comment: editedComment,
             url: editedUrl // Include the URL in the updated data
         };
 
 
-        updatePasswordItem(clickedRow.id, effectiveGroupId, updatedData, setData)
+        updatePasswordItem(clickedRow.id, updatedData, setData)
             .then((response) => {
                 console.log("updatedData");
                 console.log(updatedData);
                 console.log("clickedRow.id")
                 console.log(clickedRow.id)
-                console.log(typeof (setData) );
+
                 setPasswordItems((prevData) =>
                     prevData.map(item =>
                         item.id === clickedRow.id ? { ...updatedData, id: clickedRow.id } : item
@@ -340,7 +302,6 @@ const MainPage = ({ groupId, userId, setGroupItems, passwordItems, setPasswordIt
          },
      ];
 
-
     const history_columns = [
         {
             title: 'Date',
@@ -363,6 +324,7 @@ const MainPage = ({ groupId, userId, setGroupItems, passwordItems, setPasswordIt
         },
 
     ];
+
     const filteredPasswordItems = passwordItems.filter(item => item !== undefined);
 
     return (
@@ -418,7 +380,7 @@ const MainPage = ({ groupId, userId, setGroupItems, passwordItems, setPasswordIt
                                     />
                                 </p>
                                 <p>
-                                    <strong>Папка:</strong> {clickedRow.folder_id ? clickedRow.folder_id : 'Без папки'}
+                                    <strong>Папка:</strong> {clickedRow.folder_name ? clickedRow.folder_name : 'Без папки'}
                                 </p>
                                 {clickedRow.comment && (
                                     <p>

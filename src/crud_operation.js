@@ -5,17 +5,18 @@ export const config = {
     headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }  // Correct usage of token for authorization
 };
 
-export function addPasswordItem(newItem, groupId) {
+
+export function addPasswordItem(newItem) {
     const payload = { ...newItem };
     for (let key in payload) {
         console.log(key, payload[key]);
     }
 
-    return axios.post(`/passwords/create/${userId}`, payload, config)  // Отправляем POST-запрос с данными
+    return axios.post(`/passwords/create/${userId}`, payload, config)
         .then(response => {
             console.log('Пароль успешно добавлен:', response.data);
-            const createdPassId = response.data.id;  // Получаем ID нового пароля
-            return fetchPasswordById(createdPassId);  // Получаем информацию о добавленном пароле
+            const createdPassId = response.data.id;
+            return fetchPasswordById(createdPassId);
         })
         .catch(error => {
             if (error.response) {
@@ -28,12 +29,14 @@ export function addPasswordItem(newItem, groupId) {
         });
 }
 
-// Helper function to fetch a password item by its ID
-export const fetchPasswordById = (passId) => {
+
+export const fetchPasswordById = async (passId) => {
+    console.log("passId")
     console.log(passId)
-    return axios.get(`/passwords/user/${passId}/${userId}`, config)
+    return await axios.get(`/passwords/user/${userId}/${passId}`, config)
         .then(response => {
-            // Return the decrypted password item
+            console.log("response.data");
+            console.log(response.data);
             return response.data;
         })
         .catch(error => {
@@ -42,14 +45,14 @@ export const fetchPasswordById = (passId) => {
         });
 };
 
-export const updatePasswordItem = (id, folder_id, updatedData, setData) => {
-    // Adjust URL for unlisted items
+export const updatePasswordItem = (id, updatedData, setData) => {
+
     const url = `passwords/${id}`;
 
     // Remove the groupId from the data if it's for unlisted items
     const dataToSend = { ...updatedData };
-    if (dataToSend.folder_id === 'null' || dataToSend.folder_id === 0 || dataToSend.folder_id === undefined) {
-        dataToSend.folder_id = null;
+    if (dataToSend.folder_name === 'null' || dataToSend.folder_name === 0 || dataToSend.folder_name === undefined) {
+        dataToSend.folder_name = null;
     }
 
     console.log("id")
@@ -68,7 +71,8 @@ export const updatePasswordItem = (id, folder_id, updatedData, setData) => {
                     name: response.data.name,
                     login: response.data.login,
                     password: response.data.password,
-                    folder_id: response.data.folder_id,
+                    folder_id: null,
+                    folder_name: response.data.folder_name,
                     user_id: response.data.user_id,
                     comment: response.data.comment,
                     url: response.data.url,
@@ -97,29 +101,14 @@ export const updatePasswordItem = (id, folder_id, updatedData, setData) => {
         });
 };
 
-function deleteGroup(groupId, setGroupItems) {
-    axios.delete(`folders/${groupId}/`, config)
-        .then((response) => {
-            if (response.status === 204) {
-                console.log(`Папка ${groupId} успешно удалена`);
 
-                // Update the sidebar to remove the deleted group
-                setGroupItems(prevGroupItems =>
-                    prevGroupItems.filter(group => group.key !== `group-${groupId}`)
-                );
-            } else {
-                throw new Error('Failed to delete the group.');
-            }
-        })
-        .catch((error) => {
-            console.error('Error deleting the group:', error);
-        });
-}
-
-
-function checkAndDeleteGroup(groupId, setData, setGroupItems) {
-    // Fetch all password items for this group to see if any are left
-    axios.get(`/passwords/folder/${userId}/${groupId}`, config)
+async function checkAndDeleteGroup(groupId, setData, setGroupItems) {
+    console.log("groupId")
+    console.log(groupId)
+    if (groupId === undefined) {
+        return;
+    }
+    await axios.get(`/passwords/folder/${userId}/${groupId}`, config)
         .then(response => {
             const remainingItems = response.data || [];
 
@@ -135,6 +124,42 @@ function checkAndDeleteGroup(groupId, setData, setGroupItems) {
             console.error('Error checking if group is empty:', error);
         });
 }
+
+
+export function dataFetching(groupId, setData) {
+    axios.get(`/passwords/folder/${userId}/${groupId}`, config)
+        .then(response => {
+            console.log(response.data);
+            const passwordItemsWithGroupNames = response.data.map(item => ({
+                id: item.id,
+                name: item.name,
+                login: item.login,
+                password: item.password,
+                folder_id: item.folder_id,
+                folder_name: item.folder_name,
+                user_id: item.user_id,
+                comment: item.comment,
+                url: item.url,
+                isPasswordVisible: false,
+            }));
+            setData(passwordItemsWithGroupNames);
+        })
+        .catch(error => {
+            console.error('Error fetching password items for group:', error);
+        });
+}
+
+
+export const fetchHistory = async (passwordId) => {
+    try {
+        const response = await axios.get(`/passwords/user/${userId}/${passwordId}`);
+        console.log('History response:', response.data[0].updated_at); // Log the successful response
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching history:', error.response || error); // Log the entire error object
+        throw error;
+    }
+};
 
 
 export function deleteData(id, folder_id, setData, onSuccess, setGroupItems) {
@@ -162,86 +187,22 @@ export function deleteData(id, folder_id, setData, onSuccess, setGroupItems) {
         });
 }
 
-export function fetchAllPasswordItems(setData) {
-    axios.get(`/passwords/user/${userId}`, config)
-        .then(response => {
-            if (response.data && Array.isArray(response.data)) {
-                const mappedData = response.data.map(item => ({
-                    id: item.id,
-                    name: item.name,
-                    login: item.login,
-                    password: item.password,
-                    folder_id: item.folder_id,
-                    user_id: item.user_id,
-                    comment: item.comment,
-                    url: item.url,
-                    isPasswordVisible: false,
-                }));
-                setData(mappedData);
+
+function deleteGroup(groupId, setGroupItems) {
+    axios.delete(`folders/${groupId}/`, config)
+        .then((response) => {
+            if (response.status === 204) {
+                console.log(`Папка ${groupId} успешно удалена`);
+
+                // Update the sidebar to remove the deleted group
+                setGroupItems(prevGroupItems =>
+                    prevGroupItems.filter(group => group.key !== `group-${groupId}`)
+                );
             } else {
-                console.error('Неверный формат, ожидается массив:', response.data);
+                throw new Error('Failed to delete the group.');
             }
         })
-        .catch(error => {
-            console.error('Ошибка при обработке записей пользователя: ', error);
+        .catch((error) => {
+            console.error('Error deleting the group:', error);
         });
 }
-
-export function fetchUnlistedPasswordItems(setData) {
-    axios.get(`/passwords/folders/unlisted/${userId}`, config)
-        .then(response => {
-            if (response.data && Array.isArray(response.data)) {
-                const mappedData = response.data.map(item => ({
-                    id: item.id,
-                    name: item.name,
-                    login: item.login,
-                    password: item.password,
-                    folder_id: item.folder_id,
-                    user_id: item.user_id,
-                    comment: item.comment,
-                    url: item.url,
-                    isPasswordVisible: false,
-                }));
-                setData(mappedData);
-            } else {
-                console.error('Unexpected response format or data is not an array:', response.data);
-            }
-        })
-        .catch(error => {
-            console.error('Error fetching unlisted password items:', error);
-        });
-}
-
-export function dataFetching(groupId, setData) {
-    axios.get(`/passwords/folder/${userId}/${groupId}`, config)
-        .then(response => {
-            console.log(response.data);
-            const passwordItemsWithGroupNames = response.data.map(item => ({
-                id: item.id,
-                name: item.name,
-                login: item.login,
-                password: item.password,
-                folder_id: item.folder_id,
-                user_id: item.user_id,
-                comment: item.comment,
-                url: item.url,
-                isPasswordVisible: false,
-            }));
-            setData(passwordItemsWithGroupNames);
-        })
-        .catch(error => {
-            console.error('Error fetching password items for group:', error);
-        });
-}
-
-
-export const fetchHistory = async (passwordId) => {
-    try {
-        const response = await axios.get(`/passwords/user/${userId}/${passwordId}`);
-        console.log('History response:', response.data[0].updated_at); // Log the successful response
-        return response.data;
-    } catch (error) {
-        console.error('Error fetching history:', error.response || error); // Log the entire error object
-        throw error;
-    }
-};
