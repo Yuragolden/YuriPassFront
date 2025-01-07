@@ -1,4 +1,5 @@
 import axios from './axiosConfg';
+import {registerUser} from "./api";
 const userId = localStorage.getItem('userId');
 
 export const config = {
@@ -6,13 +7,13 @@ export const config = {
 };
 
 
-export function addPasswordItem(newItem) {
+export function addPasswordItem(newItem, userID) {
     const payload = { ...newItem };
     for (let key in payload) {
         console.log(key, payload[key]);
     }
 
-    return axios.post(`/passwords/create/${userId}`, payload, config)
+    return axios.post(`/passwords/create/${userID}`, payload, config)
         .then(response => {
             console.log('Пароль успешно добавлен:', response.data);
             const createdPassId = response.data.id;
@@ -27,6 +28,29 @@ export function addPasswordItem(newItem) {
                 console.error('Произошла ошибка:', error.message);
             }
         });
+}
+
+export function addPasswordItemByAdmin(newItem2, email){
+    newItem2.folder_id = null;
+    newItem2.user_id = null;
+    console.log("lalala")
+    const payload = {...newItem2};
+    for (let key in payload) {
+        console.log(key, payload[key]);
+    }
+    return axios.post(`/companies/passwords/admin-add?user_email=${email}&admin_id=${userId}`, payload, config)
+        .then(response =>{
+            console.log("Пароль успешно добавлен пользователю " +response.data);
+            return response.data;
+        }).catch(error => {
+            if (error.response) {
+                console.error('Ответ от сервера:', error.response.data);
+            } else if (error.request) {
+                console.error('Запрос был отправлен, но нет ответа:', error.request);
+            } else {
+                console.error('Произошла ошибка:', error.message);
+            }
+        })
 }
 
 

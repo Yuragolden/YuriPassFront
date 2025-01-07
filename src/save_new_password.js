@@ -3,10 +3,9 @@ import { PlusOutlined, UserOutlined, EyeInvisibleOutlined, EyeTwoTone, RollbackO
 import { Button, Tooltip, Modal, Input, Select, message, Switch } from 'antd';
 import axios from './axiosConfg';
 import { usePasswordContext } from './PasswordContext';
-import {addPasswordItem} from "./crud_operation";
+import {addPasswordItem, addPasswordItemByAdmin} from "./crud_operation";
 import './styles.css';
 import './save_new_password.css'
-import login from "./authorisation/login";
 
 const { Option } = Select;
 const user_id = localStorage.getItem('userId');
@@ -22,12 +21,17 @@ const SaveNewPassword = ({ userId, onPasswordAdd, onSetGroupItems }) => {
     const [comments, setComments] = useState('');
     const [urlField, setUrlField] = useState('');
     const [urlError, setUrlError] = useState(null);
+    const [newPasswordForUser, setNewPasswordForUser] = useState('');
     const [strengthMessage, setStrengthMessage] = useState('');
     const [strengthScore, setStrengthScore] = useState(0);
-    const [loading, setLoading] = useState(false); // Loading state
+    const [loading, setLoading] = useState(false);
+    // const [isSharingEnabled, setIsSharingEnabled] = useState(false);
+    const [isAdmin, setIsAdmin] = useState();
+    const [isSwitchEnabled, setIsSwitchEnabled] = useState(false);
+    const token = localStorage.getItem('token');
+
     const [isSharingEnabled, setIsSharingEnabled] = useState(true);
     const [sharedGroups, setSharedGroups] = useState([]);
-    const token = localStorage.getItem('token');
 
     useEffect(() => {
         const fetchGroups = async () => {
@@ -125,8 +129,10 @@ const SaveNewPassword = ({ userId, onPasswordAdd, onSetGroupItems }) => {
             url: urlField || null,
         };
 
+        console.log("pered add password item")
 
-        addPasswordItem(newPasswordItem)
+        if(!isSwitchEnabled){
+            addPasswordItem(newPasswordItem, userId)
             .then((newItem) => {
                 message.success('Новая запись успешно создана');
                 onPasswordAdd(newItem);
@@ -140,6 +146,16 @@ const SaveNewPassword = ({ userId, onPasswordAdd, onSetGroupItems }) => {
             .finally(() => {
                 setLoading(false);
             });
+        } else {
+            console.log(newPasswordForUser);
+            addPasswordItemByAdmin(newPasswordItem, newPasswordForUser)
+                .then((data) => {
+                message.success("Пароль успешно добавлен")})
+                .catch((error) => {
+                    console.error('Ошибка при добавлении записи администратором: ', error);
+                    message.error('Не удалось добавить пароль для пользователя.');
+                });
+        }
     };
 
     const handleCancel = () => {
@@ -269,6 +285,23 @@ const SaveNewPassword = ({ userId, onPasswordAdd, onSetGroupItems }) => {
         }
     }
 
+    useEffect(() => {
+        // Проверяем статус администратора из localStorage
+        const adminStatus = localStorage.getItem('is_admin') === 'true';
+        setIsAdmin(adminStatus);
+
+    }, []);
+
+    const handleSwitchChange = (checked) => {
+        if (!isAdmin) {
+            message.error('Вы не имеете прав для выполнения этого действия');
+            return;
+        }
+        setIsSwitchEnabled(checked);
+        console.log(isSwitchEnabled);
+        message.success(`Кнопка ${checked ? 'включена' : 'выключена'}`);
+    };
+
     return (
         <>
             <Tooltip title="Add new password">
@@ -330,92 +363,79 @@ const SaveNewPassword = ({ userId, onPasswordAdd, onSetGroupItems }) => {
                     Сгенерировать пароль
                 </Button>
 
-            <div className={'shared-group'}>
-                <div className="group" style={{ width: '50%' }}>
+                <div className={'shared-group'}>
+                    <div className="group" style={{width: '50%'}}>
+                        <Select
+                            style={{width: '100%', marginBottom: '10px'}}
+                            placeholder="Выбрать папку"
+                            value={selectedGroup || null} // selectedGroup — это выбранный элемент
+                            onChange={(value) => {
+                                setSelectedGroup(value);  // Устанавливаем выбранную группу
+                            }}
+                            allowClear
+                            showSearch
+                            notFoundContent="Папки не найдены"
+                            filterOption={(input, option) =>
+                                option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+                            }
+                        >
+                            {groupOptions.map((group) => (
+                                <Option key={group.groupId} value={group.groupId}>
+                                    {group.groupName} {/* Отображаем название группы */}
+                                    {sharedGroups.includes(group.groupId) && (
+                                        <ShareAltOutlined style={{marginLeft: '10px', color: '#1677ff'}}/>
+                                    )}
+                                </Option>
+                            ))}
+                        </Select>
+                        {
+                            <Input
+                                placeholder="Имя для новой папки"
+                                value={newGroupName}
+                                onChange={(e) => setNewGroupName(e.target.value)}
 
-                    <Select
-                        style={{ width: '100%', marginBottom: '10px' }}
-                        placeholder="Выбрать папку"
-                        value={selectedGroup || null} // selectedGroup — это выбранный элемент
-                        onChange={(value) => {
-                            setSelectedGroup(value);  // Устанавливаем выбранную группу
-                            setIsSharingEnabled(sharedGroups.includes(value));  // Если это общая группа
-                        }}
-                        allowClear
-                        showSearch
-                        notFoundContent="Папки не найдены"
-                        filterOption={(input, option) =>
-                            option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
-                        }
-                    >
-                        {groupOptions.map((group) => (
-                            <Option key={group.groupId} value={group.groupId}>
-                                {group.groupName} {/* Отображаем название группы */}
-                                {sharedGroups.includes(group.groupId) && (
-                                    <ShareAltOutlined style={{ marginLeft: '10px', color: '#1677ff' }} />
-                                )}
-                            </Option>
-                        ))}
-                    </Select>
+                            />
+                            /* Conditional Rendering of Share Icon */}
+                        {selectedGroup && selectedGroup !== 'null' && isSharingEnabled && (
+                            <ShareAltOutlined
+                                style={{
+                                    position: 'absolute',
+                                    right: '-30px',
+                                    top: '50%',
+                                    transform: 'translateY(-50%)',
+                                    fontSize: '18px',
+                                    color: '#1677ff'
+                                }}
+                            />
+                        )}
 
-                    {
-
-                <Input
-                    placeholder="Имя для новой папки"
-                    value={newGroupName}
-                    onChange={(e) => setNewGroupName(e.target.value)}
-
-                />
-                        /* Conditional Rendering of Share Icon */}
-                    {selectedGroup && selectedGroup !== 'null' && isSharingEnabled && (
-                        <ShareAltOutlined
+                    </div>
+                    <div className={'share-box'} style={{borderRadius: '5px', height: 'auto'}}>
+                        <div
                             style={{
-                                position: 'absolute',
-                                right: '-30px',
-                                top: '50%',
-                                transform: 'translateY(-50%)',
-                                fontSize: '18px',
-                                color: '#1677ff'
+                                display: 'flex',
+                                alignItems: 'center',
+                                marginBottom: '5px',
+                                width: '100%',
                             }}
-                        />
-                    )}
-
-                </div>
-                <div className={'share-box'} style={{borderRadius: '5px',height:'auto'}}>
-                    <div style={{display: 'flex', alignItems: 'center', marginBottom: '5px', width: '100%'}}>
-                        <span style={{fontWeight: '500', marginRight: 'auto'}}>Поделиться паролем</span>
-                        <Switch
-                            defaultChecked={false}
-                            onChange={(checked) => {
-                                setIsSharingEnabled(checked);
-                                if (selectedGroup && selectedGroup !== 'null') {
-                                    if (checked) {
-                                        // Add the group to the sharedGroups list if not already present
-                                        setSharedGroups((prevSharedGroups) => {
-                                            if (!prevSharedGroups.includes(selectedGroup)) {
-                                                return [...prevSharedGroups, selectedGroup];
-                                            }
-                                            return prevSharedGroups;
-                                        });
-                                    } else {
-                                        // Remove the group from the sharedGroups list if unchecked
-                                        setSharedGroups((prevSharedGroups) =>
-                                            prevSharedGroups.filter((groupId) => groupId !== selectedGroup)
-                                        );
-                                    }
-                                }
-                            }}
-                            className="share-switch"
+                        >
+                            <span style={{fontWeight: '500', marginRight: 'auto'}}>
+                              Поделиться паролем
+                            </span>
+                            <Switch
+                                checked={isSwitchEnabled}
+                                onChange={handleSwitchChange}
+                                className="share-switch"
+                            />
+                        </div>
+                        <Input
+                            placeholder="Введите email"
+                            style={{width: '100%', height: '31px'}}
+                            disabled={!isSwitchEnabled}
+                            onChange={(e) => setNewPasswordForUser(e.target.value)}
                         />
                     </div>
-                    <Input
-                        placeholder="Введите email"
-                        style={{width: '100%', height:'31px'}}
-                        disabled={!isSharingEnabled}
-                    />
                 </div>
-
-            </div>
                 <Input
                     placeholder="Комментарии (опционально)"
                     value={comments}

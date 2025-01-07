@@ -263,7 +263,7 @@ const App = () => {
 
 
     const [breadcrumbItems, setBreadcrumbItems] = useState([
-        { title: 'Без папки' },
+        { title: 'Все пароли' },
     ]);
 
     const onMenuSelect = ({ key }) => {
@@ -310,12 +310,12 @@ const App = () => {
             );
             localStorage.removeItem('token');
             localStorage.removeItem('userId');
-            localStorage.removeItem('id_admin');
+            localStorage.removeItem('is_admin');
             setLoggedIn(false);
-            setPasswordItems([]); // Очистка паролей
-            setGroupItems([]); // Очистка папок
-            setSelectedGroupId(-1); // Сброс выбранной группы
-            setSelectedKey('login'); // Установка ключа на страницу входа
+            setPasswordItems([]);
+            setGroupItems([]);
+            setSelectedGroupId(-1);
+            setSelectedKey('login');
             setShowLogoutConfirm(false);
             navigate('/login');
         } catch (error) {
@@ -347,13 +347,15 @@ const App = () => {
                 <div style={{padding: '20px', textAlign: 'center', marginTop: '10px', position:'sticky', top: '2%'}}>
                     {!collapsed ? (
                         <img
-                            src="https://drive.google.com/file/d/1zfnE_d6fsfpM_7L6i3S4-L3H2G-EfMOJ/view?usp=drive_link"
+                            src="/locked.png"
                             alt="Expanded Logo"
-                            style={{width: '100%', maxHeight: '64px', objectFit: 'contain', }}
+                            // style={{width: '100%', maxHeight: '64px', objectFit: 'contain', }}
+                            style={{ width: '50px', height: '50px', objectFit: 'contain' }}
+
                         />
                     ) : (
                         <img
-                            src="https://drive.google.com/file/d/1zfnE_d6fsfpM_7L6i3S4-L3H2G-EfMOJ/view?usp=drive_link"
+                            src="/locked.png"
                             alt="Collapsed Logo"
                             style={{width: '100%', maxHeight: '60px', objectFit: 'contain'}}
                         />
@@ -442,7 +444,7 @@ const App = () => {
             </Modal>
             <Modal
                 title="Подтвердить выход"
-                visible={showLogoutConfirm}
+                open={showLogoutConfirm}
                 onOk={handleLogout}
                 onCancel={handleCancelLogout}
                 okText="Yes"
